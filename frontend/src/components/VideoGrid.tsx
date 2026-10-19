@@ -1,25 +1,39 @@
-import { useState, useEffect } from 'react';
-import { getEnv } from '../utils/Env';
+import VideoCard from './VideoCard';
 
-const VideoGrid = () => {
-  const [someData, setSomeData] = useState([]);
+interface Props {
+  videos: string[];
+}
 
-  useEffect(() => {
-    fetch(getEnv().API_BASE_URL + '/someEndpoint')
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setSomeData(data);
-      });
-  }, []);
+const VideoGrid = ({ videos }: Props) => {
+  if (videos.length === 0) {
+    return <p className="pt-empty">No videos found.</p>;
+  }
 
   return (
-    <ul className="row g-4">
-      {someData?.map((entity) => (
-        <li key={entity}>{entity}</li>
+    <div className="pt-grid">
+      {videos.map((video) => (
+        <VideoCard key={video} title={video} />
       ))}
-    </ul>
+    </div>
+  );
+};
+
+export const VideoGridSkeleton = ({ count = 8 }: { count?: number }) => {
+  return (
+    <div className="pt-grid" aria-busy="true" aria-label="Loading videos">
+      {Array.from({ length: count }, (_, index) => (
+        <div key={index} className="pt-card">
+          <div className="pt-thumb pt-skeleton" />
+          <div className="pt-card-body">
+            <div className="pt-avatar pt-skeleton" />
+            <div className="flex-grow-1">
+              <div className="pt-skeleton pt-skeleton-line" />
+              <div className="pt-skeleton pt-skeleton-line pt-skeleton-short" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 
