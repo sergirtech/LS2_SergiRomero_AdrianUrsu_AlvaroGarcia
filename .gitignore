@@ -1,3 +1,7 @@
 .vscode/
 .idea/
 ## tooling/videos/
+# Downloads from tooling/videoGrabber (never commit videos)
+tooling/videoGrabber/*.webm
+tooling/videoGrabber/*.mp4
+tooling/videoGrabber/*.webp

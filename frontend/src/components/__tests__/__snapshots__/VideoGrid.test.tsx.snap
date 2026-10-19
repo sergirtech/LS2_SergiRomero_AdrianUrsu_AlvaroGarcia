@@ -1,16 +1,82 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`this component renders correctly 1`] = `
+exports[`VideoGrid renders correctly 1`] = `
 <DocumentFragment>
-  <ul
-    class="row g-4"
+  <div
+    class="pt-grid"
   >
-    <li>
-      video 1 test
-    </li>
-    <li>
-      video 2 test
-    </li>
-  </ul>
+    <article
+      class="pt-card"
+    >
+      <div
+        class="pt-thumb"
+      >
+        <img
+          alt=""
+          loading="lazy"
+          src="development/video%201%20test.webp"
+        />
+      </div>
+      <div
+        class="pt-card-body"
+      >
+        <div
+          aria-hidden="true"
+          class="pt-avatar"
+        >
+          V
+        </div>
+        <div>
+          <h3
+            class="pt-card-title"
+            title="video 1 test"
+          >
+            video 1 test
+          </h3>
+          <p
+            class="pt-card-meta"
+          >
+            ProTube
+          </p>
+        </div>
+      </div>
+    </article>
+    <article
+      class="pt-card"
+    >
+      <div
+        class="pt-thumb"
+      >
+        <img
+          alt=""
+          loading="lazy"
+          src="development/video%202%20test.webp"
+        />
+      </div>
+      <div
+        class="pt-card-body"
+      >
+        <div
+          aria-hidden="true"
+          class="pt-avatar"
+        >
+          V
+        </div>
+        <div>
+          <h3
+            class="pt-card-title"
+            title="video 2 test"
+          >
+            video 2 test
+          </h3>
+          <p
+            class="pt-card-meta"
+          >
+            ProTube
+          </p>
+        </div>
+      </div>
+    </article>
+  </div>
 </DocumentFragment>
 `;
