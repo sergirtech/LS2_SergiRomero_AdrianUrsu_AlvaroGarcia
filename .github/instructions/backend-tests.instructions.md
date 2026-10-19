@@ -10,7 +10,10 @@ applyTo: "backend/src/test/**/*.java"
   Don't use `@MockitoBean` (3.4+).
 * Controllers: `@WebMvcTest(XController.class)` + `@Autowired MockMvc` + `@MockBean` services. Assert HTTP status
   and JSON body (`jsonPath`), not only that the call doesn't throw.
-* Services: `@ExtendWith(MockitoExtension.class)` with `@Mock` / `@InjectMocks`; no Spring context.
+* Services: `@ExtendWith(MockitoExtension.class)` with `@Mock` / `@InjectMocks`; no Spring context. Mock
+  `PasswordEncoder` instead of hashing for real.
+* Repositories: `@DataJpaTest` with real queries on the embedded H2; use `saveAndFlush` to trigger DB constraints.
+* DTO validation rules: plain unit test with `Validation.buildDefaultValidatorFactory().getValidator()`.
 * `@SpringBootTest` only when the full context is really needed, passing
   `"pro_tube.store.dir=..."` and `"pro_tube.load_initial_data=false"` as properties.
 * Mirror the main package and name the class `<ClassUnderTest>Test`; test method names describe the behaviour

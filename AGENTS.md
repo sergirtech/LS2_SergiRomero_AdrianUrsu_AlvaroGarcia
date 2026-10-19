@@ -13,6 +13,8 @@ More specific rules live in [`backend/AGENTS.md`](backend/AGENTS.md) and [`front
 * `tooling/videoGrabber/` — Python script (`yt-dlp` + `ffmpeg`) that writes `.mp4`/`.webp`/`.json` triples into the
   video store folder the backend serves.
 * `prompts/` — approved AI prompts (see "AI usage" below).
+* `docs/` — `architecture.md` (how the pieces fit), `decisions.md` (design decisions and why),
+  `project-status.md` (what is done / in progress per user story). Read `project-status.md` before continuing work.
 
 ## Commands (Windows / PowerShell)
 
@@ -31,15 +33,19 @@ The Maven wrapper is not committed yet; CI generates it with `mvn -N io.takari:m
 missing locally, generate it the same way or use a local `mvn`.
 
 CI (`.github/workflows/main.yml`) runs on PRs and pushes to `main`: frontend `npm ci` → build → tests → lint, then
-backend `./mvnw clean verify`.
+backend `./mvnw clean verify -Pcoverage` (the profile is a no-op, see "Mistakes to avoid").
 
 ## Architecture
 
-* Backend layering: `controller/` (REST under `/api/...`) → `services/` (business logic) → repository (Spring Data
-  JPA, **not created yet** — H2 is a placeholder per NFR-01). Controllers never talk to persistence directly.
+* Backend layering: `controller/` (REST under `/api/...`) → `services/` (business logic) → `repository/` (Spring
+  Data JPA) → JPA entities in `model/`. Controllers never talk to repositories directly. H2 is the dev datastore and
+  only a placeholder per NFR-01.
 * `configuration/MvcConfig` serves the video store under `/media/**`. The store path comes from
   `pro_tube.store.dir` (env var `ENV_PROTUBE_STORE_DIR`); never hardcode it.
 * Frontend calls the backend through `src/utils/Env.ts` (`${VITE_API_DOMAIN}/api`, `${VITE_MEDIA_DOMAIN}/media`).
+* Authentication (Epic 1, **in progress** on `feature/auth`): email + password, BCrypt hashes, server session
+  (`JSESSIONID` cookie) with Spring Security. See `docs/decisions.md` for the reasons and `docs/project-status.md`
+  for which steps are done.
 
 ## Conventions
 
@@ -66,3 +72,5 @@ backend `./mvnw clean verify`.
 * Don't add `-Pcoverage` expecting it to do something: that profile does not exist; JaCoCo always runs in `verify`.
 * Don't treat H2 as the final datastore.
 * Don't run ad hoc prompts for a task type already covered in `prompts/`; reuse the approved one.
+* Don't store, log or return plain-text passwords, and don't return JPA entities from controllers: use DTOs.
+* Don't leave `docs/project-status.md` stale: update it when a user story step is finished.

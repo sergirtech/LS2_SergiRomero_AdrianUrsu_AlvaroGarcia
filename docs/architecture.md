@@ -1,0 +1,54 @@
+# Architecture
+
+How the parts of ProTube fit together. Rules and commands are in [`AGENTS.md`](../AGENTS.md); the reasons behind the
+choices are in [`decisions.md`](decisions.md).
+
+## Overview
+
+```
+Browser ──► React SPA (Vite dev server :5173, or bundled into the backend jar in prod)
+              │  fetch / axios to ${VITE_API_DOMAIN}/api and ${VITE_MEDIA_DOMAIN}/media  (src/utils/Env.ts)
+              ▼
+            Spring Boot (:8080)
+              ├── /api/**    REST controllers → services → repositories → JPA entities → H2 (dev) / PostgreSQL (prod)
+              └── /media/**  static files from the video store folder (pro_tube.store.dir = ENV_PROTUBE_STORE_DIR)
+                                ▲
+            tooling/videoGrabber writes .mp4 / .webp / .json triples into the store folder
+```
+
+## Backend (`backend/`, package `com.tecnocampus.LS2.protube_back`)
+
+| Layer            | Package          | Contents today                                                                |
+|------------------|------------------|-------------------------------------------------------------------------------|
+| Web              | `controller/`    | `VideosController` (`GET /api/videos`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
+| Business logic   | `services/`      | `VideoService` (placeholder list), `AuthService` (registration), `UserAlreadyExistsException` |
+| Persistence      | `repository/`    | `UserRepository` (Spring Data JPA)                                             |
+| Domain           | `model/`         | `User` entity → table `app_user` (`id`, unique `email`, unique `username`, `password_hash`) |
+| Configuration    | `configuration/` | `MvcConfig` (`/media/**`, CORS), `SecurityConfig` (BCrypt `PasswordEncoder` bean) |
+
+Rules: controllers only call services; services own the repositories; HTTP bodies are DTO records (planned in
+`controller/dto/`), never entities.
+
+Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the console at `/h2-console`
+(`jdbc:h2:mem:mydb`, user `sa`). `prod` points to PostgreSQL through `ENV_PROTUBE_DB_*` variables and defines no
+`ddl-auto`, so the schema strategy for prod is still open.
+
+## Frontend (`frontend/`)
+
+* `App.tsx` composes `Navbar` + `Sidebar` + `VideoGrid` and owns UI state; there is no router yet.
+* Hooks (`src/use*.ts`) call the API; components are presentational and receive data as props.
+* The "Sign in" button in `Navbar` is visual only until the auth frontend tasks (F1–F6) are done.
+
+## Authentication flow (target design, Epic 1 — in progress)
+
+```
+RegisterPage / LoginPage ──► useAuth (fetch, credentials: 'include')
+   POST /api/auth/register  → validate DTO → AuthService.register (normalize email, check duplicates, BCrypt)
+                              → start session → 201 UserResponse
+   POST /api/auth/login     → AuthenticationManager → AppUserDetailsService → session cookie JSESSIONID → 200
+   GET  /api/auth/me        → current user from the session, 401 without one
+   POST /api/auth/logout    → Spring Security invalidates the session → 204
+Errors (ApiExceptionHandler): 400 {message, errors{field: msg}} · 409 {message} · 401 {message}
+```
+
+Only the parts listed in the backend table above exist today; see [`project-status.md`](project-status.md).

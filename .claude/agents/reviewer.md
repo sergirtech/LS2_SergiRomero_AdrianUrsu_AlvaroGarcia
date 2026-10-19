@@ -19,6 +19,10 @@ read the affected files.
 * The user story acceptance criteria in `REQUIREMENT.md` the change claims to implement.
 * Backend: Controller → Service → Repository layering; `@MockBean` (not `@MockitoBean`, Spring Boot 3.3); JUnit 5
   only; tests for every new path; JaCoCo thresholds likely to hold; no hardcoded store paths.
+* Backend auth/security: passwords only stored as `PasswordEncoder` hashes and never logged or returned; controllers
+  return DTOs from `controller/dto/`, never JPA entities; emails normalized with `AuthService.normalizeEmail`;
+  `spring-boot-starter-security` only added together with a `SecurityFilterChain`; unauthenticated `/api/**` calls
+  get 401 (no redirect to a login form); login errors don't reveal whether the email exists.
 * Frontend: URLs via `Env.ts`; components get data via props (fetching in hooks); a test file per new component;
   tests with Testing Library + `jest-fetch-mock`, no network; colours via `--pt-*` variables in `App.css`, custom
   classes prefixed `pt-`, CSS imported only from `App.tsx` / `main.tsx`.
