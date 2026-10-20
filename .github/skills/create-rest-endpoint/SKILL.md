@@ -22,5 +22,8 @@ description: Create a new REST endpoint in the ProTube Spring Boot backend (cont
 Rules:
 
 * Spring Boot is 3.3.3 → `@MockBean`, not `@MockitoBean`.
-* Return `ResponseEntity<...>`; don't expose JPA entities directly once they exist — use DTOs.
+* Return `ResponseEntity<...>`; never expose JPA entities from `model/` — use records in `controller/dto/`
+  (e.g. `UserResponse.from(User)`), with Bean Validation annotations on request records
+  (`spring-boot-starter-validation` must be in `pom.xml`).
+* Services call repositories in `repository/`; the controller never injects a repository.
 * Don't touch `MvcConfig` CORS unless the route is outside `/api/**`.

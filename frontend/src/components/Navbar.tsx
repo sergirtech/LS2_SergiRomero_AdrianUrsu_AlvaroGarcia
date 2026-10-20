@@ -1,10 +1,17 @@
+import { Link } from 'react-router';
+import type { User } from '../useAuth';
+
 interface Props {
   query: string;
   onQueryChange: (query: string) => void;
   onToggleSidebar: () => void;
+  user: User | null;
+  // False while the session is being checked, so "Sign in" doesn't flash for a signed-in user.
+  authReady: boolean;
+  onSignOut: () => void;
 }
 
-const Navbar = ({ query, onQueryChange, onToggleSidebar }: Props) => {
+const Navbar = ({ query, onQueryChange, onToggleSidebar, user, authReady, onSignOut }: Props) => {
   return (
     <header className="pt-navbar">
       <div className="pt-navbar-start">
@@ -13,9 +20,9 @@ const Navbar = ({ query, onQueryChange, onToggleSidebar }: Props) => {
             <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-        <a href="/" className="pt-brand">
+        <Link to="/" className="pt-brand">
           <img src="/protube-logo-removebg-preview.png" alt="ProTube" />
-        </a>
+        </Link>
       </div>
 
       <form className="pt-search" role="search" onSubmit={(e) => e.preventDefault()}>
@@ -36,9 +43,19 @@ const Navbar = ({ query, onQueryChange, onToggleSidebar }: Props) => {
       </form>
 
       <div className="pt-navbar-end">
-        <button type="button" className="btn btn-outline-primary rounded-pill px-3">
-          Sign in
-        </button>
+        {authReady &&
+          (user ? (
+            <>
+              <span className="pt-username">{user.username}</span>
+              <button type="button" className="btn btn-outline-secondary rounded-pill px-3" onClick={onSignOut}>
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="btn btn-outline-primary rounded-pill px-3">
+              Sign in
+            </Link>
+          ))}
       </div>
     </header>
   );

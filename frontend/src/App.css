@@ -45,6 +45,15 @@ body {
   flex-shrink: 0;
 }
 
+.pt-username {
+  color: var(--pt-muted);
+  font-size: 0.9rem;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .pt-brand img {
   height: 36px;
   display: block;
@@ -301,4 +310,10 @@ body {
     padding: 4px 10px;
     font-size: 0.85rem;
   }
+}
+
+/* Auth pages (login / register) */
+.pt-auth {
+  max-width: 420px;
+  margin: 48px auto;
 }

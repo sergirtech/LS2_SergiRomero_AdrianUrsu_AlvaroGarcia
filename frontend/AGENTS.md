@@ -22,7 +22,9 @@ React 19, TypeScript 5.9, Vite 7, Bootstrap 5, axios. Tests with Jest 30 + Testi
 * `src/App.tsx` composes the layout (`Navbar` + `Sidebar` + main content) and owns UI state (search query, sidebar
   open). Data hooks like `src/useAllVideos.ts` call the API; components receive data as props and don't fetch.
 * `src/components/` — presentational components:
-  * `Navbar` — logo, search box (filters the loaded videos client-side), "Sign in" button.
+  * `Navbar` — logo, search box (filters the loaded videos client-side), "Sign in" link or username + "Sign out"
+    (auth state comes from `App` as props).
+  * `LoginPage` / `RegisterPage` — auth forms; they call `useAuth` (`src/useAuth.tsx`).
   * `Sidebar` — navigation links; collapses to an icon rail.
   * `VideoGrid` / `VideoGridSkeleton` — responsive card grid and its loading placeholder.
   * `VideoCard` — thumbnail from `${MEDIA_BASE_URL}/<name>.webp`, falling back to a gradient placeholder on error.
@@ -41,6 +43,7 @@ React 19, TypeScript 5.9, Vite 7, Bootstrap 5, axios. Tests with Jest 30 + Testi
 * Icons are inline SVGs with `stroke="currentColor"`; don't add an icon library for a few icons.
 * Import CSS only from `App.tsx` / `main.tsx`. Jest has no CSS module mapper, so a component that imports a `.css`
   file can't be tested.
+  A test that renders `App` must stub it: `jest.mock('../App.css', () => ({}))` (see `src/__tests__/AppAuth.test.tsx`).
 
 ## Rules
 
