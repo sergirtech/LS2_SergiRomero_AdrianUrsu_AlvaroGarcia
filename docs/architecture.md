@@ -41,7 +41,8 @@ Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the conso
 * `useAuth` (`src/useAuth.tsx`) holds the signed-in user in a context provided by `AuthProvider` in `main.tsx`;
   it throws `AuthError` (`status`, `message`, `fieldErrors`) when the API answers 400 / 401 / 409 or is unreachable.
 * "Sign in" in `Navbar` links to `/login`; `RegisterPage` and `LoginPage` hold the forms
-  (F3, F4); the signed-in state in the `Navbar` arrives in F5.
+  (F3, F4). `App` reads `useAuth` and passes the user and sign out to `Navbar`, which shows the username and
+  "Sign out" when signed in (F5).
 
 ## Authentication flow (target design, Epic 1 — in progress)
 

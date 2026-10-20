@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useNavigate } from 'react-router';
 import './App.css';
 import { useAllVideos } from './useAllVideos';
+import { useAuth } from './useAuth';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import VideoGrid, { VideoGridSkeleton } from './components/VideoGrid';
@@ -11,10 +12,28 @@ import RegisterPage from './components/RegisterPage';
 function App() {
   const [query, setQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { user, status, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch {
+      // Server unreachable: the session is still open, so the user stays signed in.
+    }
+  };
 
   return (
     <div className="pt-app">
-      <Navbar query={query} onQueryChange={setQuery} onToggleSidebar={() => setSidebarOpen((open) => !open)} />
+      <Navbar
+        query={query}
+        onQueryChange={setQuery}
+        onToggleSidebar={() => setSidebarOpen((open) => !open)}
+        user={user}
+        authReady={status === 'ready'}
+        onSignOut={handleSignOut}
+      />
       <div className="pt-layout">
         <Sidebar open={sidebarOpen} />
         <main className="pt-main">

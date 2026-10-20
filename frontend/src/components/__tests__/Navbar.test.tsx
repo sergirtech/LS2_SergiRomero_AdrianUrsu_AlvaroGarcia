@@ -7,7 +7,15 @@ import Navbar from '../Navbar';
 const renderNavbar = (props: Partial<Parameters<typeof Navbar>[0]> = {}) =>
   render(
     <MemoryRouter>
-      <Navbar query="" onQueryChange={jest.fn()} onToggleSidebar={jest.fn()} {...props} />
+      <Navbar
+        query=""
+        onQueryChange={jest.fn()}
+        onToggleSidebar={jest.fn()}
+        user={null}
+        authReady
+        onSignOut={jest.fn()}
+        {...props}
+      />
     </MemoryRouter>
   );
 
@@ -37,5 +45,21 @@ describe('Navbar', () => {
     renderNavbar();
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
     expect(screen.getByRole('link', { name: 'ProTube' })).toHaveAttribute('href', '/');
+  });
+
+  it('shows the username and Sign out when signed in', () => {
+    const onSignOut = jest.fn();
+    renderNavbar({ user: { id: 1, email: 'ana@mail.com', username: 'ana' }, onSignOut });
+
+    expect(screen.getByText('ana')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
+    expect(onSignOut).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows neither Sign in nor Sign out while the session is being checked', () => {
+    renderNavbar({ authReady: false });
+    expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument();
   });
 });
