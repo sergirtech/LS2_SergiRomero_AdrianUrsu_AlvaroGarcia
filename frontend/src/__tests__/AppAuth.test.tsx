@@ -46,6 +46,20 @@ describe('App authentication', () => {
     expect(screen.getByRole('heading', { name: 'Recommended' })).toBeInTheDocument();
   });
 
+  it('shows the new user in the Navbar after registering (R1)', async () => {
+    fetchMock.mockResponseOnce('', { status: 401 }).mockResponseOnce(JSON.stringify(ana), { status: 201 });
+    await renderApp('/register');
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ana@mail.com' } });
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'ana' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+    expect(await screen.findByRole('button', { name: 'Sign out' })).toBeInTheDocument();
+    expect(screen.getByText('ana')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Recommended' })).toBeInTheDocument();
+  });
+
   it('signs out and shows Sign in again (L3)', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(ana)).mockResponseOnce('', { status: 204 });
     await renderApp('/');
