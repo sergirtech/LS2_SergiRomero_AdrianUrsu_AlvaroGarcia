@@ -14,8 +14,8 @@ Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.
 | B3   | `AuthService.register` (normalize, duplicates, BCrypt) + `SecurityConfig` `PasswordEncoder` + `AuthServiceTest` | R1, R2 | done (committed) |
 | B4   | DTOs with Bean Validation (`controller/dto/`) + `ApiExceptionHandler` (400/409) + tests | R2, R3 | done (committed) |
 | B5   | Spring Security: `AppUserDetailsService`, filter chain, 401, logout, session | L1–L3     | done (committed) |
-| B6   | `AuthController` (`/api/auth/register`, `/login`, `/me`, `/logout`)        | all        | next             |
-| B7   | CORS with credentials in `MvcConfig`                                       | L1, L3     | pending          |
+| B6   | `AuthController` (`/api/auth/register`, `/login`, `/me`, `/logout`)        | all        | done (committed) |
+| B7   | CORS with credentials in `MvcConfig`                                       | L1, L3     | next             |
 | B8   | Remaining backend tests, JaCoCo thresholds                                 | DoD        | pending          |
 | F1   | `react-router`, routes `/login`, `/register`                               | R1, L1     | pending          |
 | F2   | `useAuth` hook                                                             | R1, L1–L3  | pending          |

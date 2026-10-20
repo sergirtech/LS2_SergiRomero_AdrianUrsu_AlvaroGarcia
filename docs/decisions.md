@@ -65,3 +65,11 @@ Real URLs and back-button support; also needed later for the video detail page (
 
 ## D17 — `fetch` in `useAuth` (Proposed, step F2)
 Frontend rules require mocking HTTP with `jest-fetch-mock`, and `credentials: 'include'` is explicit.
+
+## D18 — Registration starts a session (Accepted, step B6)
+After a successful registration the user is already logged in, through the same `AuthenticationManager` as login,
+so there is only one way to create a session. Cost: BCrypt runs twice on registration (~100 ms).
+
+## D19 — New session id on login (Accepted, step B6)
+The login is done in `AuthController`, not by `formLogin`, so the session fixation protection is applied by hand
+with `request.changeSessionId()` before saving the `SecurityContext` in the session.

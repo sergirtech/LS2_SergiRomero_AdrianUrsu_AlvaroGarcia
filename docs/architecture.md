@@ -20,7 +20,7 @@ Browser ──► React SPA (Vite dev server :5173, or bundled into the backend 
 
 | Layer            | Package          | Contents today                                                                |
 |------------------|------------------|-------------------------------------------------------------------------------|
-| Web              | `controller/`    | `VideosController` (`GET /api/videos`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
+| Web              | `controller/`    | `AuthController` (`/api/auth/register`, `/login`, `/me`), `ApiExceptionHandler` (400/401/409 JSON), DTOs in `dto/`, `VideosController` (`GET /api/videos`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
 | Business logic   | `services/`      | `VideoService` (placeholder list), `AuthService` (registration, `getByEmail`), `AppUserDetailsService` (Spring Security user loading), `UserAlreadyExistsException` |
 | Persistence      | `repository/`    | `UserRepository` (Spring Data JPA)                                             |
 | Domain           | `model/`         | `User` entity → table `app_user` (`id`, unique `email`, unique `username`, `password_hash`) |
