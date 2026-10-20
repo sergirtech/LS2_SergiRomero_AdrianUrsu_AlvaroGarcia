@@ -1,34 +1,68 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router';
 
 import VideoGrid, { VideoGridSkeleton } from '../VideoGrid';
 
+const videos = [
+  { id: '0', title: 'video1', channel: 'channel1', viewCount: 1200 },
+  { id: '1', title: 'video2', channel: 'channel2', viewCount: 2400 },
+];
+
 describe('VideoGrid', () => {
   it('renders correctly', () => {
-    const { asFragment } = render(<VideoGrid videos={['video 1 test', 'video 2 test']} />);
+    const { asFragment } = render(
+      <MemoryRouter>
+        <VideoGrid
+          videos={[
+            { id: '0', title: 'video 1 test', channel: 'channel1', viewCount: 1200 },
+            { id: '1', title: 'video 2 test', channel: 'channel2', viewCount: 2400 },
+          ]}
+        />
+      </MemoryRouter>
+    );
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('renders a card per video with its thumbnail from the media store', () => {
-    render(<VideoGrid videos={['video1', 'video2']} />);
+    render(
+      <MemoryRouter>
+        <VideoGrid videos={videos} />
+      </MemoryRouter>
+    );
     expect(screen.getAllByRole('article')).toHaveLength(2);
     expect(screen.getByRole('heading', { name: 'video1' })).toBeInTheDocument();
-    expect(document.querySelector('img')).toHaveAttribute('src', 'development/video1.webp');
+    expect(screen.getByAltText('video1 thumbnail')).toHaveAttribute('src', 'development/0.webp');
+    expect(
+      screen.getByText((_, element) => element?.tagName === 'P' && element.textContent === 'channel1·1.2K views')
+    ).toBeInTheDocument();
   });
 
   it('shows a placeholder when the thumbnail fails to load', () => {
-    render(<VideoGrid videos={['video1']} />);
+    render(
+      <MemoryRouter>
+        <VideoGrid videos={[videos[0]]} />
+      </MemoryRouter>
+    );
     fireEvent.error(document.querySelector('img')!);
     expect(screen.getByTestId('thumb-placeholder')).toBeInTheDocument();
   });
 
   it('shows an empty message when there are no videos', () => {
-    render(<VideoGrid videos={[]} />);
+    render(
+      <MemoryRouter>
+        <VideoGrid videos={[]} />
+      </MemoryRouter>
+    );
     expect(screen.getByText('No videos found.')).toBeInTheDocument();
   });
 
   it('renders loading skeleton cards', () => {
-    render(<VideoGridSkeleton count={3} />);
+    render(
+      <MemoryRouter>
+        <VideoGridSkeleton count={3} />
+      </MemoryRouter>
+    );
     expect(screen.getByLabelText('Loading videos').children).toHaveLength(3);
   });
 });

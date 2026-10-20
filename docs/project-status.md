@@ -35,6 +35,12 @@ Known follow-ups:
 
 ## Other epics
 
-Not started: profile (US-03), video catalog and playback (US-04, US-05; `VideoService` still returns a placeholder
-list), upload and metadata (US-06, US-07), search (US-08; the navbar filters loaded videos client-side), comments
-(US-09).
+Not started: profile (US-03), upload and metadata (US-06, US-07), comments persistence (US-09).
+
+In progress: video catalog and playback (US-04, US-05). The frontend currently previews the first five files in
+`tooling/videos`, opens a selected MP4 with native browser controls and autoplay, shows the remaining previews as
+recommendations, and reads sample comments from each video's JSON metadata. Comments submitted in the UI are
+temporary; there is no comments API or persistence yet. The backend `VideoService` still returns a placeholder list,
+so catalog loading and complete video details remain unfinished.
+
+Search (US-08) currently filters the five frontend preview entries client-side.

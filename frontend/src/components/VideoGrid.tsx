@@ -1,18 +1,20 @@
 import VideoCard from './VideoCard';
+import type { Video } from './VideoCard';
 
 interface Props {
-  videos: string[];
+  videos: Video[];
+  compact?: boolean;
 }
 
-const VideoGrid = ({ videos }: Props) => {
+const VideoGrid = ({ videos, compact = false }: Props) => {
   if (videos.length === 0) {
     return <p className="pt-empty">No videos found.</p>;
   }
 
   return (
-    <div className="pt-grid">
+    <div className={`pt-grid${compact ? ' pt-grid-compact' : ''}`}>
       {videos.map((video) => (
-        <VideoCard key={video} title={video} />
+        <VideoCard key={video.id} video={video} />
       ))}
     </div>
   );

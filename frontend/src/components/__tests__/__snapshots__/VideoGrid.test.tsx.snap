@@ -5,78 +5,92 @@ exports[`VideoGrid renders correctly 1`] = `
   <div
     class="pt-grid"
   >
-    <article
-      class="pt-card"
+    <a
+      class="pt-card-link"
+      data-discover="true"
+      href="/watch/0"
     >
-      <div
-        class="pt-thumb"
-      >
-        <img
-          alt=""
-          loading="lazy"
-          src="development/video%201%20test.webp"
-        />
-      </div>
-      <div
-        class="pt-card-body"
+      <article
+        class="pt-card"
       >
         <div
-          aria-hidden="true"
-          class="pt-avatar"
+          class="pt-thumb"
         >
-          V
+          <img
+            alt="video 1 test thumbnail"
+            loading="lazy"
+            src="development/0.webp"
+          />
         </div>
-        <div>
-          <h3
-            class="pt-card-title"
-            title="video 1 test"
-          >
-            video 1 test
-          </h3>
-          <p
-            class="pt-card-meta"
-          >
-            ProTube
-          </p>
+        <div
+          class="pt-card-body"
+        >
+          <div>
+            <h3
+              class="pt-card-title"
+              title="video 1 test"
+            >
+              video 1 test
+            </h3>
+            <p
+              class="pt-card-meta"
+            >
+              channel1
+              <span
+                aria-hidden="true"
+                class="pt-meta-separator"
+              >
+                ·
+              </span>
+              1.2K views
+            </p>
+          </div>
         </div>
-      </div>
-    </article>
-    <article
-      class="pt-card"
+      </article>
+    </a>
+    <a
+      class="pt-card-link"
+      data-discover="true"
+      href="/watch/1"
     >
-      <div
-        class="pt-thumb"
-      >
-        <img
-          alt=""
-          loading="lazy"
-          src="development/video%202%20test.webp"
-        />
-      </div>
-      <div
-        class="pt-card-body"
+      <article
+        class="pt-card"
       >
         <div
-          aria-hidden="true"
-          class="pt-avatar"
+          class="pt-thumb"
         >
-          V
+          <img
+            alt="video 2 test thumbnail"
+            loading="lazy"
+            src="development/1.webp"
+          />
         </div>
-        <div>
-          <h3
-            class="pt-card-title"
-            title="video 2 test"
-          >
-            video 2 test
-          </h3>
-          <p
-            class="pt-card-meta"
-          >
-            ProTube
-          </p>
+        <div
+          class="pt-card-body"
+        >
+          <div>
+            <h3
+              class="pt-card-title"
+              title="video 2 test"
+            >
+              video 2 test
+            </h3>
+            <p
+              class="pt-card-meta"
+            >
+              channel2
+              <span
+                aria-hidden="true"
+                class="pt-meta-separator"
+              >
+                ·
+              </span>
+              2.4K views
+            </p>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </a>
   </div>
 </DocumentFragment>
 `;

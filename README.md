@@ -261,12 +261,14 @@ sudo apt-get remove package // (yt-dlp or ffmpeg)
 
 ### Backend
 
-Run `ProtubeBackApplication` from the menu on the top right of IntelliJ IDEA. Before that, you should add the
-ENVIRONMENT VARIABLE for the folder where the videos are located.
+Run `ProtubeBackApplication` from the menu on the top right of IntelliJ IDEA. By default, the backend uses the
+repository's `tooling/videos` folder, so no machine-specific path is required. Set `ENV_PROTUBE_STORE_DIR` only if
+you want to use a video store elsewhere.
 ![img.png](resources/run%20backend.png)
 ![img.png](resources/edit_env_variable.png)
 
-For environment variables (if you don't see it, select it from the Modify Options menu)
+To override the default store, add this environment variable (if you don't see environment variables, select them from
+the Modify Options menu):
 
 ```
 ENV_PROTUBE_STORE_DIR={stored-folder-absolute-path}
@@ -329,4 +331,3 @@ The command will generate 3 files for every video listed in `resources/video_lis
 * *.mp4: The trimmed video
 * *.webp: The thumbnail
 * *.json: Metadata info about the video
-
