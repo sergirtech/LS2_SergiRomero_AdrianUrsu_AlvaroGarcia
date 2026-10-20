@@ -57,3 +57,5 @@ Si encuentras algo en el plan que convenga cambiar, avísame y explícame por qu
   hand-written variant, so always run the tests the step provides.
 * Tasks were reordered so the app keeps working after every commit: `spring-boot-starter-security` is added in the
   same step as the `SecurityFilterChain` (B5), not at the start.
+* The AI's test data can be wrong too: in B6 `" Ana@Mail.com "` failed with 400 because `@Email` rejects surrounding
+  spaces. The fix was in the test, not in the controller; the frontend trims the email before sending (F3).

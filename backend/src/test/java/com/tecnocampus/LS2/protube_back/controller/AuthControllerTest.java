@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -116,5 +117,19 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/logout").session(session)).andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/auth/me").session(session)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void loginChangesTheSessionIdToPreventSessionFixation() throws Exception {
+        MockHttpSession session = register();
+        String idBeforeLogin = session.getId();
+
+        MvcResult result = mockMvc.perform(post("/api/auth/login").session(session)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"ana@mail.com\",\"password\":\"password123\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertNotEquals(idBeforeLogin, result.getRequest().getSession(false).getId());
     }
 }
