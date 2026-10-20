@@ -38,6 +38,8 @@ Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the conso
 * `main.tsx` wraps `App` in a `BrowserRouter`; `App.tsx` composes `Navbar` + `Sidebar` and routes the main area:
   `/` videos, `/login` `LoginPage`, `/register` `RegisterPage`.
 * Hooks (`src/use*.ts`) call the API; components are presentational and receive data as props.
+* `useAuth` (`src/useAuth.tsx`) holds the signed-in user in a context provided by `AuthProvider` in `main.tsx`;
+  it throws `AuthError` (`status`, `message`, `fieldErrors`) when the API answers 400 / 401 / 409 or is unreachable.
 * "Sign in" in `Navbar` links to `/login`; the pages are placeholders until the forms (F3, F4).
 
 ## Authentication flow (target design, Epic 1 — in progress)

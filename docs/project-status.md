@@ -18,8 +18,8 @@ Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.
 | B7   | CORS with credentials in `MvcConfig`                                       | L1, L3     | done (committed) |
 | B8   | Remaining backend tests, JaCoCo thresholds                                 | DoD        | done (committed) |
 | F1   | `react-router`, routes `/login`, `/register`                               | R1, L1     | done             |
-| F2   | `useAuth` hook                                                             | R1, L1–L3  | next             |
-| F3   | `RegisterPage` with client-side validation                                 | R1–R3      | pending          |
+| F2   | `useAuth` hook                                                             | R1, L1–L3  | done             |
+| F3   | `RegisterPage` with client-side validation                                 | R1–R3      | next             |
 | F4   | `LoginPage`                                                                | L1, L2     | pending          |
 | F5   | `Navbar` signed-in state + sign out                                        | L1, L3     | pending          |
 | F6   | Frontend tests                                                             | DoD        | pending          |

@@ -64,8 +64,10 @@ the app working.
 Real URLs and back-button support; also needed later for the video detail page (US-05). Version 7: v8 requires
 React ≥ 19.2.7 and Node ≥ 22.22 (the project uses React 19.1 and Node 22).
 
-## D17 — `fetch` in `useAuth` (Proposed, step F2)
-Frontend rules require mocking HTTP with `jest-fetch-mock`, and `credentials: 'include'` is explicit.
+## D17 — `fetch` in `useAuth` (Accepted, step F2)
+Frontend rules require mocking HTTP with `jest-fetch-mock`, and `credentials: 'include'` is explicit. `useAuth`
+reads a React context (`AuthProvider` in `main.tsx`) so the pages and the `Navbar` share one signed-in user; on load
+it calls `GET /api/auth/me` to restore the session after a reload.
 
 ## D18 — Registration starts a session (Accepted, step B6)
 After a successful registration the user is already logged in, through the same `AuthenticationManager` as login,
