@@ -60,8 +60,9 @@ The session cookie only travels from `:5173` to `:8080` with `allowCredentials(t
 Adding it alone protects every route with a generated password and breaks `GET /api/videos`; each commit must leave
 the app working.
 
-## D16 — `react-router` for `/login` and `/register` (Proposed, step F1)
-Real URLs and back-button support; also needed later for the video detail page (US-05).
+## D16 — `react-router` for `/login` and `/register` (Accepted, step F1)
+Real URLs and back-button support; also needed later for the video detail page (US-05). Version 7: v8 requires
+React ≥ 19.2.7 and Node ≥ 22.22 (the project uses React 19.1 and Node 22).
 
 ## D17 — `fetch` in `useAuth` (Proposed, step F2)
 Frontend rules require mocking HTTP with `jest-fetch-mock`, and `credentials: 'include'` is explicit.

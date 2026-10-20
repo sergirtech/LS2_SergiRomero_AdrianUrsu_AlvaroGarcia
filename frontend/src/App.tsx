@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { Route, Routes } from 'react-router';
 import './App.css';
 import { useAllVideos } from './useAllVideos';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import VideoGrid, { VideoGridSkeleton } from './components/VideoGrid';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -15,7 +18,11 @@ function App() {
       <div className="pt-layout">
         <Sidebar open={sidebarOpen} />
         <main className="pt-main">
-          <ContentApp query={query} />
+          <Routes>
+            <Route path="/" element={<ContentApp query={query} />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Routes>
         </main>
       </div>
     </div>

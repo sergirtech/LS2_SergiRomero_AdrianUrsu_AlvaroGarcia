@@ -17,8 +17,8 @@ Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.
 | B6   | `AuthController` (`/api/auth/register`, `/login`, `/me`, `/logout`)        | all        | done (committed) |
 | B7   | CORS with credentials in `MvcConfig`                                       | L1, L3     | done (committed) |
 | B8   | Remaining backend tests, JaCoCo thresholds                                 | DoD        | done (committed) |
-| F1   | `react-router`, routes `/login`, `/register`                               | R1, L1     | next             |
-| F2   | `useAuth` hook                                                             | R1, L1–L3  | pending          |
+| F1   | `react-router`, routes `/login`, `/register`                               | R1, L1     | done             |
+| F2   | `useAuth` hook                                                             | R1, L1–L3  | next             |
 | F3   | `RegisterPage` with client-side validation                                 | R1–R3      | pending          |
 | F4   | `LoginPage`                                                                | L1, L2     | pending          |
 | F5   | `Navbar` signed-in state + sign out                                        | L1, L3     | pending          |
@@ -30,6 +30,8 @@ Known follow-ups:
 * Commits so far on the branch don't follow Conventional Commits; the PR title must
   (`feat(auth): user registration and login (US-01, US-02)`), since it becomes the squash commit.
 * `prod` profile has no `ddl-auto` / migrations yet (NFR-01).
+* In prod (SPA inside the jar) a reload on `/login` or `/register` probably returns 404, because the backend
+  doesn't forward those routes to `index.html`. Not verified. Fix in a deployment PR.
 
 ## Other epics
 

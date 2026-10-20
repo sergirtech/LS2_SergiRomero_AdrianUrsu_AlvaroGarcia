@@ -35,9 +35,10 @@ Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the conso
 
 ## Frontend (`frontend/`)
 
-* `App.tsx` composes `Navbar` + `Sidebar` + `VideoGrid` and owns UI state; there is no router yet.
+* `main.tsx` wraps `App` in a `BrowserRouter`; `App.tsx` composes `Navbar` + `Sidebar` and routes the main area:
+  `/` videos, `/login` `LoginPage`, `/register` `RegisterPage`.
 * Hooks (`src/use*.ts`) call the API; components are presentational and receive data as props.
-* The "Sign in" button in `Navbar` is visual only until the auth frontend tasks (F1–F6) are done.
+* "Sign in" in `Navbar` links to `/login`; the pages are placeholders until the forms (F3, F4).
 
 ## Authentication flow (target design, Epic 1 — in progress)
 
