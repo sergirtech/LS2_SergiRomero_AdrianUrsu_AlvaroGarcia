@@ -20,8 +20,8 @@ Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.
 | F1   | `react-router`, routes `/login`, `/register`                               | R1, L1     | done             |
 | F2   | `useAuth` hook                                                             | R1, L1–L3  | done             |
 | F3   | `RegisterPage` with client-side validation                                 | R1–R3      | done             |
-| F4   | `LoginPage`                                                                | L1, L2     | next             |
-| F5   | `Navbar` signed-in state + sign out                                        | L1, L3     | pending          |
+| F4   | `LoginPage`                                                                | L1, L2     | done             |
+| F5   | `Navbar` signed-in state + sign out                                        | L1, L3     | next             |
 | F6   | Frontend tests                                                             | DoD        | pending          |
 | C1   | Manual end-to-end check of R1–R3 and L1–L3                                 | all        | pending          |
 | C2   | Prompt approved, PR reviewed, squash merge                                 | DoD        | pending          |
