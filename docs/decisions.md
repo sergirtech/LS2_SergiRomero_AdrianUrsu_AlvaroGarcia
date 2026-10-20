@@ -52,9 +52,9 @@ With cookie sessions CSRF is a real risk. Options: disable it for the MVP and do
 `CookieCsrfTokenRepository` and send `X-XSRF-TOKEN` from the frontend. Decision: disabled for the MVP to keep the
 frontend simple; documented as a known risk to revisit before production.
 
-## D14 — CORS with credentials for dev (Proposed, step B7)
+## D14 — CORS with credentials for dev (Accepted, step B7)
 The session cookie only travels from `:5173` to `:8080` with `allowCredentials(true)` and an explicit origin pattern
-(`http://localhost:[*]`), not `*`. In prod the SPA is served by the backend (same origin).
+(`http://localhost:[*]`), not `*`. In prod the SPA is served by the backend (same origin). The unused `/auth/**` mapping (OAuth leftover) was removed.
 
 ## D15 — Add `spring-boot-starter-security` together with the filter chain (Accepted)
 Adding it alone protects every route with a generated password and breaks `GET /api/videos`; each commit must leave

@@ -39,7 +39,7 @@ Base package `com.tecnocampus.LS2.protube_back`:
 * `repository/` — Spring Data JPA interfaces (e.g. `UserRepository`), used only from services.
 * `model/` — JPA entities (e.g. `User`, table `app_user` because `user` is reserved in H2/PostgreSQL). Plain
   getters/setters, no Lombok.
-* `configuration/` — Spring config: `MvcConfig` (`/media/**` and CORS for `/api/**`, `/auth/**`) and
+* `configuration/` — Spring config: `MvcConfig` (`/media/**` and CORS with credentials for `/api/**` from `http://localhost:[*]`) and
   `SecurityConfig` (filter chain, `PasswordEncoder`, `AuthenticationManager`). `services/AppUserDetailsService`
   loads users by normalized email for Spring Security.
 

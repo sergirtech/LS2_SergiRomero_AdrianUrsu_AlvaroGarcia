@@ -33,9 +33,11 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        // Dev only: the Vite dev server (any localhost port) calls the API from another origin and must send the
+        // JSESSIONID cookie. In prod the SPA is served by this backend (same origin), so CORS doesn't apply.
         registry.addMapping("/api/**")
-                .allowedOriginPatterns("*");
-        registry.addMapping("/auth/**")
-                .allowedOriginPatterns("*");
+                .allowedOriginPatterns("http://localhost:[*]")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowCredentials(true);
     }
 }
