@@ -2,7 +2,7 @@ package com.tecnocampus.LS2.protube_back.services;
 
 import com.tecnocampus.LS2.protube_back.model.User;
 import com.tecnocampus.LS2.protube_back.repository.UserRepository;
-import jakarta.persistence.Entity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +33,12 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
     }
+
+    public User getByEmail(String email) {
+        return userRepository.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
     static String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }

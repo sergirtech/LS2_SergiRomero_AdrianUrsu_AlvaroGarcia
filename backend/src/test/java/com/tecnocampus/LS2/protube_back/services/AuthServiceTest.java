@@ -7,7 +7,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,5 +55,20 @@ public class AuthServiceTest {
 
         assertEquals("This username is already taken", ex.getMessage());
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void getByEmailNormalizesAndReturnsUser() {
+        User user = new User();
+        when(userRepository.findByEmail("sergi@mail.com")).thenReturn(Optional.of(user));
+
+        assertSame(user, authService.getByEmail(" Sergi@Mail.com "));
+    }
+
+    @Test
+    void getByEmailThrowsWhenUserIsMissing() {
+        when(userRepository.findByEmail("x@y.com")).thenReturn(Optional.empty());
+
+        assertThrows(UsernameNotFoundException.class, () -> authService.getByEmail("x@y.com"));
     }
 }

@@ -7,9 +7,10 @@ Rules for `backend/` only. General rules are in the root [`AGENTS.md`](../AGENTS
 * Java **21** (`java.version` in `pom.xml`; CI uses Corretto 21). Build with a JDK 21 (`JAVA_HOME`): on JDK 25 the
   Mockito tests and JaCoCo 0.8.12 instrumentation fail.
 * Spring Boot **3.3.3**: web, data-jpa, thymeleaf, Lombok, H2, PostgreSQL driver.
-* `spring-security-crypto` only (BCrypt `PasswordEncoder`), **not** the full `spring-boot-starter-security` yet.
-  Adding the starter without a `SecurityFilterChain` locks every route (including `GET /api/videos`) behind a
-  generated password, so add it in the same change that configures the filter chain in `SecurityConfig`.
+* `spring-boot-starter-security` with the filter chain in `SecurityConfig`: public `POST /api/auth/register|login`
+  and `GET /api/videos/**`, `/api/hello`; the rest of `/api/**` needs a session (401, no redirect); logout at
+  `POST /api/auth/logout` (204). Use `antMatcher(...)`, not string `requestMatchers`: the H2 console servlet makes
+  string patterns ambiguous and the app fails to start. New public endpoints must be added to the permit list.
 * The OAuth2 Google properties in `application.properties` are unused leftovers: there is no OAuth2 client
   dependency. Login is email + password (see `docs/decisions.md`).
 * Tests: JUnit 5 + Mockito + MockMvc via `spring-boot-starter-test`. JUnit 4 and Cucumber 6 are also on the
@@ -39,7 +40,8 @@ Base package `com.tecnocampus.LS2.protube_back`:
 * `model/` — JPA entities (e.g. `User`, table `app_user` because `user` is reserved in H2/PostgreSQL). Plain
   getters/setters, no Lombok.
 * `configuration/` — Spring config: `MvcConfig` (`/media/**` and CORS for `/api/**`, `/auth/**`) and
-  `SecurityConfig` (`PasswordEncoder` bean; will hold the Spring Security filter chain).
+  `SecurityConfig` (filter chain, `PasswordEncoder`, `AuthenticationManager`). `services/AppUserDetailsService`
+  loads users by normalized email for Spring Security.
 
 Auth-specific rules: passwords are only stored as `passwordEncoder.encode(...)` hashes; emails are normalized with
 `AuthService.normalizeEmail` (trim + lowercase) everywhere they are stored or looked up.

@@ -45,4 +45,12 @@ class ApiExceptionHandlerTest {
                         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals(Map.of("message", "This email is already registered"), response.getBody());
     }
+
+    @Test
+    void badCredentialsReturn401WithGenericMessage() {
+        ResponseEntity<Map<String, Object>> response = handler.handleBadCredentials();
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(Map.of("message", "Incorrect email or password"), response.getBody());
+    }
 }

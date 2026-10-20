@@ -1,6 +1,6 @@
 # Project status
 
-Update this file when a step is finished. Last update: 2026-10-19.
+Update this file when a step is finished. Last update: 2026-10-20.
 
 ## Epic 1 — Authentication (US-01, US-02) · branch `feature/auth` · in progress
 
@@ -9,12 +9,12 @@ Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.
 
 | Step | Task                                                                       | Criteria   | Status           |
 |------|----------------------------------------------------------------------------|------------|------------------|
-| B1   | Dependencies (added per step: `spring-security-crypto` in B3, validation in B4, security starter in B5) | base | partial          |
+| B1   | Dependencies (added per step: `spring-security-crypto` in B3, validation in B4, security starter in B5) | base | done             |
 | B2   | `model/User` + `repository/UserRepository` + `UserRepositoryTest`          | R1, R2     | done (committed) |
 | B3   | `AuthService.register` (normalize, duplicates, BCrypt) + `SecurityConfig` `PasswordEncoder` + `AuthServiceTest` | R1, R2 | done (committed) |
-| B4   | DTOs with Bean Validation (`controller/dto/`) + `ApiExceptionHandler` (400/409) + tests | R2, R3 | next             |
-| B5   | Spring Security: `AppUserDetailsService`, filter chain, 401, logout, session | L1–L3     | pending          |
-| B6   | `AuthController` (`/api/auth/register`, `/login`, `/me`, `/logout`)        | all        | pending          |
+| B4   | DTOs with Bean Validation (`controller/dto/`) + `ApiExceptionHandler` (400/409) + tests | R2, R3 | done (committed) |
+| B5   | Spring Security: `AppUserDetailsService`, filter chain, 401, logout, session | L1–L3     | done (committed) |
+| B6   | `AuthController` (`/api/auth/register`, `/login`, `/me`, `/logout`)        | all        | next             |
 | B7   | CORS with credentials in `MvcConfig`                                       | L1, L3     | pending          |
 | B8   | Remaining backend tests, JaCoCo thresholds                                 | DoD        | pending          |
 | F1   | `react-router`, routes `/login`, `/register`                               | R1, L1     | pending          |

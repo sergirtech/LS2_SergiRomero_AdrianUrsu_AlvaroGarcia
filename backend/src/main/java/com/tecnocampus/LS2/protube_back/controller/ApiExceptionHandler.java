@@ -3,6 +3,7 @@ package com.tecnocampus.LS2.protube_back.controller;
 import com.tecnocampus.LS2.protube_back.services.UserAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -24,5 +25,10 @@ public class ApiExceptionHandler {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Incorrect email or password"));
     }
 }

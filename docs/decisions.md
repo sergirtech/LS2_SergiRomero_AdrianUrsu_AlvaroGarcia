@@ -7,7 +7,7 @@ agreed), **Proposed** (planned, not implemented yet), **Open** (needs a team dec
 US-01 literally asks for "an email and password". The Google OAuth2 properties in `application.properties` come from
 the course template and are unused (no OAuth2 client dependency). They can be removed or kept for a later extension.
 
-## D2 — Server session (`JSESSIONID`) instead of JWT (Proposed, step B5)
+## D2 — Server session (`JSESSIONID`) instead of JWT (Accepted, step B5)
 Native to Spring Security, real logout (the server invalidates the session) and expiry for free through
 `server.servlet.session.timeout` (30 min default), which covers US-02 AC3. JWT would make logout and expiry harder
 to do right for no MVP benefit.
@@ -15,7 +15,7 @@ to do right for no MVP benefit.
 ## D3 — BCrypt password hashes (Accepted)
 Slow by design and salted per password; the salt is stored inside the hash, so one `password_hash` column is enough.
 The `PasswordEncoder` interface is injected so tests can mock it and the algorithm can change in one place.
-`spring-security-crypto` alone provides it without enabling Spring Security's web filters.
+Since B5 it comes from `spring-boot-starter-security` (B3 used `spring-security-crypto` alone).
 
 ## D4 — Normalize emails (trim + lowercase, `Locale.ROOT`) (Accepted)
 Otherwise `Ana@x.com` and `ana@x.com` would be two accounts, breaking US-01 AC2. The same helper
@@ -31,25 +31,26 @@ Otherwise `Ana@x.com` and `ana@x.com` would be two accounts, breaking US-01 AC2.
 ## D7 — `username` as the required profile field (Accepted, confirm with the team)
 US-01 mentions "required profile fields" without listing them. Username is unique, 3–30 characters.
 
-## D8 — Password policy 8–72 characters (Proposed, step B4)
+## D8 — Password policy 8–72 characters (Accepted, step B4)
 8 is the usual minimum length; 72 because BCrypt ignores bytes beyond 72.
 
-## D9 — DTO records instead of exposing entities (Proposed, step B4)
+## D9 — DTO records instead of exposing entities (Accepted, step B4)
 Input DTOs prevent mass assignment (`id`, `passwordHash`); `UserResponse` has no hash field, so it can't leak.
 
 ## D10 — Validation on both sides (Proposed, B4 + F3)
 Client-side for immediate feedback; Bean Validation on the server is the source of truth (US-01 AC3).
 
-## D11 — HTTP errors as JSON from one `@RestControllerAdvice` (Proposed, B4/B5)
+## D11 — HTTP errors as JSON from one `@RestControllerAdvice` (Accepted, B4/B5)
 400 invalid fields `{message, errors}`, 409 duplicate `{message}`, 401 bad credentials with a generic "Incorrect email
 or password" so login doesn't reveal which emails exist (registration does, because US-01 AC2 requires it).
 
-## D12 — 401 instead of redirect for unauthenticated API calls (Proposed, step B5)
+## D12 — 401 instead of redirect for unauthenticated API calls (Accepted, step B5)
 Spring Security's default redirects to an HTML login form the SPA doesn't have.
 
-## D13 — CSRF (Open, step B5)
+## D13 — CSRF disabled for the MVP (Accepted, step B5, known risk)
 With cookie sessions CSRF is a real risk. Options: disable it for the MVP and document the risk, or keep it with
-`CookieCsrfTokenRepository` and send `X-XSRF-TOKEN` from the frontend.
+`CookieCsrfTokenRepository` and send `X-XSRF-TOKEN` from the frontend. Decision: disabled for the MVP to keep the
+frontend simple; documented as a known risk to revisit before production.
 
 ## D14 — CORS with credentials for dev (Proposed, step B7)
 The session cookie only travels from `:5173` to `:8080` with `allowCredentials(true)` and an explicit origin pattern

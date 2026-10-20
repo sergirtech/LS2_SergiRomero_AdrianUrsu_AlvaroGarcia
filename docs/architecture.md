@@ -21,13 +21,13 @@ Browser ──► React SPA (Vite dev server :5173, or bundled into the backend 
 | Layer            | Package          | Contents today                                                                |
 |------------------|------------------|-------------------------------------------------------------------------------|
 | Web              | `controller/`    | `VideosController` (`GET /api/videos`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
-| Business logic   | `services/`      | `VideoService` (placeholder list), `AuthService` (registration), `UserAlreadyExistsException` |
+| Business logic   | `services/`      | `VideoService` (placeholder list), `AuthService` (registration, `getByEmail`), `AppUserDetailsService` (Spring Security user loading), `UserAlreadyExistsException` |
 | Persistence      | `repository/`    | `UserRepository` (Spring Data JPA)                                             |
 | Domain           | `model/`         | `User` entity → table `app_user` (`id`, unique `email`, unique `username`, `password_hash`) |
-| Configuration    | `configuration/` | `MvcConfig` (`/media/**`, CORS), `SecurityConfig` (BCrypt `PasswordEncoder` bean) |
+| Configuration    | `configuration/` | `MvcConfig` (`/media/**`, CORS), `SecurityConfig` (filter chain: public routes, 401, logout; BCrypt `PasswordEncoder`; `AuthenticationManager`) |
 
-Rules: controllers only call services; services own the repositories; HTTP bodies are DTO records (planned in
-`controller/dto/`), never entities.
+Rules: controllers only call services; services own the repositories; HTTP bodies are DTO records in
+`controller/dto/`, never entities.
 
 Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the console at `/h2-console`
 (`jdbc:h2:mem:mydb`, user `sa`). `prod` points to PostgreSQL through `ENV_PROTUBE_DB_*` variables and defines no
