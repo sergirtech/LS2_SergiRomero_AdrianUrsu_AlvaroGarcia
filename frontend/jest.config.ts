@@ -10,6 +10,9 @@ export default {
   transform: {
     ...tsJestTransformCfg,
   },
+  moduleNameMapper: {
+    '\\.svg$': '<rootDir>/src/utils/__mocks__/svg.ts',
+  },
   collectCoverage: true,
   coverageReporters: ['json', 'html'],
   coverageThreshold: {

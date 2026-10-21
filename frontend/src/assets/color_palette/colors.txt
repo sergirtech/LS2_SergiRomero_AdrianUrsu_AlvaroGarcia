@@ -1,0 +1,7 @@
+#FFD400 Borders, interactions and extras
+#2E294E General background for all website
+#EADEDA General text and default icons (default background color)
+#D90368 Additional content beside general (do not use yet)
+#820263 Additional content beside general (do not use yet)
+
+

@@ -20,7 +20,8 @@ Rules for `backend/` only. General rules are in the root [`AGENTS.md`](../AGENTS
 
 * Build + all tests + coverage check: `.\mvnw.cmd clean verify`
 * Single test class / method: `.\mvnw.cmd test "-Dtest=ClassName"` / `.\mvnw.cmd test "-Dtest=ClassName#method"`
-* Run: `.\mvnw.cmd spring-boot:run` (needs `ENV_PROTUBE_STORE_DIR` set to the absolute store folder path)
+* Run: `.\mvnw.cmd spring-boot:run` (defaults to `../tooling/videos/` relative to `backend/`; set
+  `ENV_PROTUBE_STORE_DIR` to override the store folder)
 * Coverage report: `target/site/jacoco/index.html`
 
 Use the Maven wrapper (`mvnw.cmd`), not a global `mvn`. It is not committed yet; if it is missing, generate it with

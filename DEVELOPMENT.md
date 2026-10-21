@@ -42,14 +42,16 @@ python3 main.py --store=/absolute/path/to/videos --id=10 --videos=../../resource
 
 | Variable                           | Needed for              | Description                                                                                      |
 |------------------------------------|-------------------------|--------------------------------------------------------------------------------------------------|
-| `ENV_PROTUBE_STORE_DIR`            | always                  | Absolute path of the video store folder. **End it with a path separator** (`/` or `\`) — it is used as a `file:` prefix to serve `/media/**`. |
+| `ENV_PROTUBE_STORE_DIR`            | optional                | Overrides the default video store (`../tooling/videos/`, relative to `backend/`). Set it to an absolute folder path to use a different store. |
 | `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | Google OAuth login      | Google OAuth client id                                                                           |
 | `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | Google OAuth login      | Google OAuth client secret                                                                       |
 | `ENV_PROTUBE_DB_USER`              | `prod` profile          | Database user (use `sa` with the default H2 datasource)                                          |
 | `ENV_PROTUBE_DB_PWD`               | `prod` profile          | Database password (empty with the default H2 datasource)                                         |
 | `ENV_PROTUBE_DB`                   | `prod` + PostgreSQL     | PostgreSQL database name (see [Using PostgreSQL](#using-postgresql))                              |
 
-Never commit real secrets. Set them in your shell, your OS, or your (local, uncommitted) IDE run configuration.
+The backend defaults to `../tooling/videos/` when launched with `backend/` as its working directory, as in the commands
+below. Set `ENV_PROTUBE_STORE_DIR` only when using a different store. Never commit real secrets; set them in your shell,
+your OS, or your (local, uncommitted) IDE run configuration.
 
 ```bash
 # Linux / macOS
@@ -165,9 +167,9 @@ mvn -Pprod clean package
 java -jar target/protube-back-0.0.1-SNAPSHOT.jar
 ```
 
-(IntelliJ: the **Create jar** run configuration runs `package` with the `prod` profile.) Remember that
-`ENV_PROTUBE_STORE_DIR`, `ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PWD` must be set in the environment where the jar
-runs.
+(IntelliJ: the **Create jar** run configuration runs `package` with the `prod` profile.) The video store defaults to
+`../tooling/videos/` relative to the process working directory; set `ENV_PROTUBE_STORE_DIR` to override it.
+`ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PWD` must still be set when the production profile uses PostgreSQL.
 
 To only preview the production frontend bundle, without the backend: `cd frontend && npm run build:prod && npm run preview`.
 
@@ -192,11 +194,8 @@ database (NFR-01 in [REQUIREMENT.md](./REQUIREMENT.md)). The PostgreSQL driver i
 
 ## Troubleshooting
 
-* **`Could not resolve placeholder 'ENV_PROTUBE_STORE_DIR'`** (or `ENV_PROTUBE_DB_USER`, ...): the variable isn't
-  set in the environment of the process running the app. IDEs usually need a restart to pick up new OS-level
-  variables.
-* **Videos list loads but thumbnails/videos 404**: check that `ENV_PROTUBE_STORE_DIR` ends with a path separator and
-  points to the folder containing the `.mp4`/`.webp` files.
+* **Videos list loads but thumbnails/videos 404**: check that the process working directory is `backend/`, or set
+  `ENV_PROTUBE_STORE_DIR` to the folder containing the `.mp4`/`.webp` files.
 * **Frontend can't reach the API in dev**: make sure the backend is running on port 8080, or adjust
   `VITE_API_DOMAIN` in `.env.development.local`.
 * **Port already in use**: change `server.port` (backend) or run `npm run dev -- --port 5174` (frontend).

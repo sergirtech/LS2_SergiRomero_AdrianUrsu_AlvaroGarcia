@@ -14,6 +14,8 @@ const renderNavbar = (props: Partial<Parameters<typeof Navbar>[0]> = {}) =>
         user={null}
         authReady
         onSignOut={jest.fn()}
+        darkMode={false}
+        onDarkModeChange={jest.fn()}
         {...props}
       />
     </MemoryRouter>
@@ -41,25 +43,41 @@ describe('Navbar', () => {
     expect(onToggleSidebar).toHaveBeenCalledTimes(1);
   });
 
-  it('links Sign in to the login page and the logo to home', () => {
+  it('links the logo to home and shows Sign in in the user access panel', () => {
     renderNavbar();
+    expect(screen.getByRole('link', { name: 'Tube Enjoyers' })).toHaveAttribute('href', '/');
+
+    fireEvent.click(screen.getByRole('button', { name: 'User access' }));
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
-    expect(screen.getByRole('link', { name: 'ProTube' })).toHaveAttribute('href', '/');
   });
 
-  it('shows the username and Sign out when signed in', () => {
+  it('shows the username and Sign out in the user access panel when signed in', () => {
     const onSignOut = jest.fn();
     renderNavbar({ user: { id: 1, email: 'ana@mail.com', username: 'ana' }, onSignOut });
 
+    fireEvent.click(screen.getByRole('button', { name: 'User access' }));
     expect(screen.getByText('ana')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(onSignOut).toHaveBeenCalledTimes(1);
   });
 
-  it('shows neither Sign in nor Sign out while the session is being checked', () => {
+  it('does not show account actions while the session is being checked', () => {
     renderNavbar({ authReady: false });
+    fireEvent.click(screen.getByRole('button', { name: 'User access' }));
+    expect(screen.getByText('Checking session...')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument();
+  });
+
+  it('opens display settings and reports dark mode changes', () => {
+    const onDarkModeChange = jest.fn();
+    renderNavbar({ onDarkModeChange });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByRole('region', { name: 'Display settings' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('switch', { name: 'Dark mode' }));
+
+    expect(onDarkModeChange).toHaveBeenCalledWith(true);
   });
 });

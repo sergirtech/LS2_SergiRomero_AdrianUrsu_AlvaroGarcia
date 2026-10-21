@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.config.annotation.*;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @Configuration
 @EnableWebMvc
 public class MvcConfig implements WebMvcConfigurer {
@@ -19,10 +22,16 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String storeLocation = Paths.get(env.getRequiredProperty("pro_tube.store.dir"))
+                .toUri()
+                .toString();
+        if (!storeLocation.endsWith("/")) {
+            storeLocation += "/";
+        }
+
         registry
            .addResourceHandler("/media/**")
-           .addResourceLocations(
-                   String.format("file:%s", env.getProperty("pro_tube.store.dir")));
+           .addResourceLocations(storeLocation);
 
         registry.addResourceHandler("/**")
            .addResourceLocations("classpath:/static/", "classpath:/public/",
