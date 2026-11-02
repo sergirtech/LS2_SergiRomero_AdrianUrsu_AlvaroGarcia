@@ -45,9 +45,11 @@ python3 main.py --store=/absolute/path/to/videos --id=10 --videos=../../resource
 | `ENV_PROTUBE_STORE_DIR`            | optional                | Overrides the default video store (`../tooling/videos/`, relative to `backend/`). Set it to an absolute folder path to use a different store. |
 | `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | Google OAuth login      | Google OAuth client id                                                                           |
 | `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | Google OAuth login      | Google OAuth client secret                                                                       |
-| `ENV_PROTUBE_DB_USER`              | `prod` profile          | Database user (use `sa` with the default H2 datasource)                                          |
-| `ENV_PROTUBE_DB_PWD`               | `prod` profile          | Database password (empty with the default H2 datasource)                                         |
-| `ENV_PROTUBE_DB`                   | `prod` + PostgreSQL     | PostgreSQL database name (see [Using PostgreSQL](#using-postgresql))                              |
+| `ENV_PROTUBE_DB`                   | `prod` profile          | PostgreSQL database name (see [Using PostgreSQL](#using-postgresql))                              |
+| `ENV_PROTUBE_DB_USER`              | `prod` profile          | PostgreSQL user                                                                                  |
+| `ENV_PROTUBE_DB_PASS`              | `prod` profile          | PostgreSQL password                                                                              |
+| `ENV_PROTUBE_DB_HOST`              | optional                | PostgreSQL host (default `localhost`; `db` when the backend runs inside docker compose)          |
+| `ENV_PROTUBE_DB_PORT`              | optional                | PostgreSQL port (default `5432`)                                                                 |
 
 The backend defaults to `../tooling/videos/` when launched with `backend/` as its working directory, as in the commands
 below. Set `ENV_PROTUBE_STORE_DIR` only when using a different store. Never commit real secrets; set them in your shell,
@@ -169,19 +171,30 @@ java -jar target/protube-back-0.0.1-SNAPSHOT.jar
 
 (IntelliJ: the **Create jar** run configuration runs `package` with the `prod` profile.) The video store defaults to
 `../tooling/videos/` relative to the process working directory; set `ENV_PROTUBE_STORE_DIR` to override it.
-`ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PWD` must still be set when the production profile uses PostgreSQL.
+`ENV_PROTUBE_DB`, `ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PASS` must be set: the production profile uses PostgreSQL.
 
 To only preview the production frontend bundle, without the backend: `cd frontend && npm run build:prod && npm run preview`.
 
 ### Using PostgreSQL
 
-The `prod` profile still points to an in-memory H2 database, which is only a placeholder — the MVP requires a real
-database (NFR-01 in [REQUIREMENT.md](./REQUIREMENT.md)). The PostgreSQL driver is already a dependency. To switch:
+The `prod` profile persists data in PostgreSQL (NFR-01 in [REQUIREMENT.md](./REQUIREMENT.md)); `dev` and the tests
+keep using in-memory H2. Hibernate creates/updates the tables on startup (`spring.jpa.hibernate.ddl-auto=update`).
 
-1. Start a PostgreSQL server (e.g. `docker run -d --name protube-db -p 5432:5432 -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=protube postgres:16`).
-2. In `backend/src/main/resources/application.properties`, in the `prod` section, uncomment the PostgreSQL
-   `spring.datasource.url` line and remove the H2 one.
-3. Set `ENV_PROTUBE_DB` (e.g. `protube`), `ENV_PROTUBE_DB_USER` (e.g. `postgres`) and `ENV_PROTUBE_DB_PWD`.
+1. Create a `.env` file in the repository root (it is git-ignored, never commit it). `docker compose` reads it:
+   ```dotenv
+   ENV_PROTUBE_DB=protube
+   ENV_PROTUBE_DB_USER=protube
+   ENV_PROTUBE_DB_PASS=<choose a password>
+   ```
+   Variables already set in your shell or OS take precedence over `.env`, so keep both in sync.
+2. Start the database: `docker compose up -d db` (PostgreSQL 16, port `5432`, data kept in the `postgres_data`
+   volume). Check it with `docker exec -it postgres_db psql -U protube -d protube -c "\l"`.
+3. Spring Boot does not read `.env`: set the same `ENV_PROTUBE_DB*` variables in the shell, OS or IDE run
+   configuration that starts the backend, then run it with the `prod` profile (see above).
+
+If port `5432` is taken (e.g. by a PostgreSQL installed on Windows), stop that service or map another host port in
+`compose.yaml` and set `ENV_PROTUBE_DB_PORT`. If you change the credentials after the first start, the volume keeps
+the old ones: recreate it with `docker compose down -v` (this deletes the data).
 
 ## 6. Workflow reminders
 

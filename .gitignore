@@ -5,3 +5,5 @@
 tooling/videoGrabber/*.webm
 tooling/videoGrabber/*.mp4
 tooling/videoGrabber/*.webp
+# Local secrets read by docker compose (never commit)
+.env

@@ -19,7 +19,7 @@ Since B5 it comes from `spring-boot-starter-security` (B3 used `spring-security-
 
 ## D4 — Normalize emails (trim + lowercase, `Locale.ROOT`) (Accepted)
 Otherwise `Ana@x.com` and `ana@x.com` would be two accounts, breaking US-01 AC2. The same helper
-(`AuthService.normalizeEmail`) must be used at login. `Locale.ROOT` avoids locale-dependent lowercasing.
+(`User.normalizeEmail`, in the domain since D20) must be used at login. `Locale.ROOT` avoids locale-dependent lowercasing.
 
 ## D5 — Duplicate protection in two layers (Accepted)
 `AuthService` checks `existsByEmail` / `existsByUsername` to return a clear message; the `UNIQUE` constraints on
@@ -76,3 +76,14 @@ so there is only one way to create a session. Cost: BCrypt runs twice on registr
 ## D19 — New session id on login (Accepted, step B6)
 The login is done in `AuthController`, not by `formLogin`, so the session fixation protection is applied by hand
 with `request.changeSessionId()` before saving the `SecurityContext` in the session.
+
+## D20 — Hexagonal architecture (ports and adapters) in the backend (Proposed, confirm with the team)
+The business rules (`domain/`, `application/`) no longer depend on JPA, Spring Security or HTTP: the domain `User`
+is a plain object, and the application talks to the outside only through ports (`UserRepository`,
+`PasswordHasher`). Benefits: the move to PostgreSQL (NFR-01) or another store only touches
+`infrastructure/persistence`; services are unit-tested with mocked ports and no Spring context; each new epic has an
+obvious place for each class. Done early (only Epic 1 existed) because the cost grows with every feature.
+Trade-offs accepted to keep it simple: `@Service` stays on the application services instead of wiring them in a
+`@Configuration` class; ports live in `application/port` (not in `domain`); a JPA entity + mapper duplicates the
+`User` fields. `UserNotFoundException` replaces Spring's `UsernameNotFoundException` in the application;
+`AppUserDetailsService` translates it, and `ApiExceptionHandler` answers 401 for it, so the API behaves as before.

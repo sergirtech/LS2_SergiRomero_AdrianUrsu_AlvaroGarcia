@@ -1,6 +1,6 @@
 package com.tecnocampus.LS2.protube_back;
 
-import com.tecnocampus.LS2.protube_back.services.VideoService;
+import com.tecnocampus.LS2.protube_back.application.port.in.ListVideosUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ public class AppStartupRunner implements ApplicationRunner {
             LoggerFactory.getLogger(AppStartupRunner.class);
 
     @Autowired
-    VideoService videoService;
+    ListVideosUseCase listVideosUseCase;
 
     // Example variables from our implementation. 
     // Feel free to adapt them to your needs
