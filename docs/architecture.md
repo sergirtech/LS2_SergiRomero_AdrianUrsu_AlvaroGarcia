@@ -10,7 +10,7 @@ Browser ──► React SPA (Vite dev server :5173, or bundled into the backend 
               │  fetch / axios to ${VITE_API_DOMAIN}/api and ${VITE_MEDIA_DOMAIN}/media  (src/utils/Env.ts)
               ▼
             Spring Boot (:8080)
-              ├── /api/**    REST controllers → services → repositories → JPA entities → H2 (dev) / PostgreSQL (prod)
+              ├── /api/**    web adapter → input port → service → output port → JPA adapter → H2 (dev) / PostgreSQL (prod)
               └── /media/**  static files from the video store folder (pro_tube.store.dir = ENV_PROTUBE_STORE_DIR)
                                 ▲
             tooling/videoGrabber writes .mp4 / .webp / .json triples into the store folder
@@ -18,16 +18,29 @@ Browser ──► React SPA (Vite dev server :5173, or bundled into the backend 
 
 ## Backend (`backend/`, package `com.tecnocampus.LS2.protube_back`)
 
-| Layer            | Package          | Contents today                                                                |
-|------------------|------------------|-------------------------------------------------------------------------------|
-| Web              | `controller/`    | `AuthController` (`/api/auth/register`, `/login`, `/me`), `ApiExceptionHandler` (400/401/409 JSON), DTOs in `dto/`, `VideosController` (`GET /api/videos`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
-| Business logic   | `services/`      | `VideoService` (placeholder list), `AuthService` (registration, `getByEmail`), `AppUserDetailsService` (Spring Security user loading), `UserAlreadyExistsException` |
-| Persistence      | `repository/`    | `UserRepository` (Spring Data JPA)                                             |
-| Domain           | `model/`         | `User` entity → table `app_user` (`id`, unique `email`, unique `username`, `password_hash`) |
-| Configuration    | `configuration/` | `MvcConfig` (`/media/**`, CORS), `SecurityConfig` (filter chain: public routes, 401, logout; BCrypt `PasswordEncoder`; `AuthenticationManager`) |
+Hexagonal architecture (ports and adapters), see `decisions.md` D20:
 
-Rules: controllers only call services; services own the repositories; HTTP bodies are DTO records in
-`controller/dto/`, never entities.
+```
+        infrastructure/web ──► application/port/in ◄── application/service ──► application/port/out ◄── infrastructure/persistence
+        (driving adapter)       (use cases)               (implements in,         (UserRepository,          (JPA adapter)
+                                                           uses out)               PasswordHasher)   ◄── infrastructure/security
+                                         all of them use domain/ (User, exceptions) — domain depends on nothing
+```
+
+| Hexagon part        | Package                        | Contents today                                                         |
+|---------------------|--------------------------------|------------------------------------------------------------------------|
+| Domain              | `domain/model`, `domain/exception` | `User` (plain Java, immutable, `normalizeEmail`), `UserAlreadyExistsException`, `UserNotFoundException` |
+| Input ports         | `application/port/in`          | `RegisterUserUseCase`, `FindUserUseCase`, `ListVideosUseCase`          |
+| Output ports        | `application/port/out`         | `UserRepository`, `PasswordHasher`                                     |
+| Use cases           | `application/service`          | `AuthService` (register, `getByEmail`), `VideoService` (placeholder list) |
+| Web adapter         | `infrastructure/web`           | `AuthController` (`/api/auth/register`, `/login`, `/me`), `ApiExceptionHandler` (400/401/409 JSON), DTOs in `dto/`, `VideosController` (`GET /api/videos`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
+| Persistence adapter | `infrastructure/persistence`   | `UserJpaEntity` → table `app_user` (`id`, unique `email`, unique `username`, `password_hash`), `UserJpaRepository` (Spring Data, package-private), `UserPersistenceAdapter` |
+| Security adapters   | `infrastructure/security`      | `BCryptPasswordHasher`, `AppUserDetailsService` (Spring Security user loading via `FindUserUseCase`) |
+| Configuration       | `infrastructure/config`        | `MvcConfig` (`/media/**`, CORS), `SecurityConfig` (filter chain: public routes, 401, logout; BCrypt `PasswordEncoder`; `AuthenticationManager`) |
+
+Rules: dependencies only point inwards (`infrastructure` → `application` → `domain`); `domain` has no framework
+imports; controllers depend on input ports, services on output ports; HTTP bodies are DTO records in
+`infrastructure/web/dto/`, never domain objects or JPA entities.
 
 Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the console at `/h2-console`
 (`jdbc:h2:mem:mydb`, user `sa`). `prod` points to PostgreSQL through `ENV_PROTUBE_DB_*` variables and defines no

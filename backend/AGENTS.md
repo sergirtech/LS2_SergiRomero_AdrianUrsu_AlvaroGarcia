@@ -33,31 +33,52 @@ Use the Maven wrapper (`mvnw.cmd`), not a global `mvn`. It is not committed yet;
 
 Base package `com.tecnocampus.LS2.protube_back`:
 
-* `controller/` — `@RestController`s mapped under `/api/...`; thin, delegate to services, return `ResponseEntity`.
-  Request/response bodies are records in `controller/dto/`; never return a JPA entity.
-* `services/` — `@Service` business logic, constructor injection. Throws domain exceptions (e.g.
-  `UserAlreadyExistsException`) that know nothing about HTTP.
-* `repository/` — Spring Data JPA interfaces (e.g. `UserRepository`), used only from services.
-* `model/` — JPA entities (e.g. `User`, table `app_user` because `user` is reserved in H2/PostgreSQL). Plain
-  getters/setters, no Lombok.
-* `configuration/` — Spring config: `MvcConfig` (`/media/**` and CORS with credentials for `/api/**` from `http://localhost:[*]`) and
-  `SecurityConfig` (filter chain, `PasswordEncoder`, `AuthenticationManager`). `services/AppUserDetailsService`
-  loads users by normalized email for Spring Security.
+Hexagonal architecture (ports and adapters, `docs/decisions.md` D20). Dependencies only point inwards:
+`infrastructure` → `application` → `domain`.
 
-Auth-specific rules: passwords are only stored as `passwordEncoder.encode(...)` hashes; emails are normalized with
-`AuthService.normalizeEmail` (trim + lowercase) everywhere they are stored or looked up.
+* `domain/` — the core, **plain Java: no Spring, JPA or Jakarta imports.**
+  * `model/` — domain objects (e.g. `User`, immutable, `User.normalizeEmail`).
+  * `exception/` — domain exceptions that know nothing about HTTP (`UserAlreadyExistsException`,
+    `UserNotFoundException`).
+* `application/` — use cases.
+  * `port/in/` — input ports, one interface per use case (`RegisterUserUseCase`, `FindUserUseCase`,
+    `ListVideosUseCase`). Adapters call these, never the services directly.
+  * `port/out/` — output ports the application needs (`UserRepository`, `PasswordHasher`).
+  * `service/` — `@Service` classes implementing the input ports and using only output ports
+    (`AuthService`, `VideoService`). `@Service` is the only Spring import allowed here.
+* `infrastructure/` — adapters and Spring wiring.
+  * `web/` — input adapter: `@RestController`s under `/api/...`, thin, depend on input ports;
+    `ApiExceptionHandler`; request/response records in `web/dto/`. Never return domain objects or JPA entities.
+  * `persistence/` — output adapter: `UserJpaEntity` (table `app_user`, `user` is reserved), the package-private
+    Spring Data `UserJpaRepository`, and `UserPersistenceAdapter` implementing the `UserRepository` port and
+    mapping entity ↔ domain.
+  * `security/` — `BCryptPasswordHasher` (implements `PasswordHasher`) and `AppUserDetailsService` (Spring Security
+    loads users through `FindUserUseCase`).
+  * `config/` — `MvcConfig` (`/media/**` and CORS with credentials for `/api/**` from `http://localhost:[*]`) and
+    `SecurityConfig` (filter chain, `PasswordEncoder`, `AuthenticationManager`).
 
-Tests mirror the main package under `src/test/java/...` with the `*Test` suffix (e.g. `controller/VideosControllerTest`).
+Adding a feature: domain model/exception → port(s) → service → adapter(s). A new external dependency (DB, file
+store, mail…) gets an output port in `application/port/out/` and its implementation in `infrastructure/`.
+
+Auth-specific rules: passwords are only stored through the `PasswordHasher` port (BCrypt); emails are normalized
+with `User.normalizeEmail` (trim + lowercase) everywhere they are stored or looked up.
+
+Tests mirror the main package under `src/test/java/...` with the `*Test` suffix (e.g.
+`infrastructure/web/VideosControllerTest`).
 
 ## Testing
 
 * Spring Boot 3.3 → mock beans with `@MockBean` (`org.springframework.boot.test.mock.mockito.MockBean`).
   `@MockitoBean` only exists from 3.4 and will not compile here.
-* Controller tests: `@WebMvcTest(XController.class)` + `MockMvc` + `@MockBean` for the services.
-* Service tests: plain unit tests with `@ExtendWith(MockitoExtension.class)`, `@Mock`, `@InjectMocks`.
-* Repository tests: `@DataJpaTest` (embedded H2, rollback per test), e.g. `repository/UserRepositoryTest`. Use
-  `saveAndFlush` when asserting a DB constraint; the `ERROR ... Unique index or primary key violation` log line in
-  that test is expected.
+* Domain tests: plain JUnit, no mocks (e.g. `domain/model/UserTest`).
+* Controller tests: `@WebMvcTest(XController.class)` + `MockMvc` + `@MockBean` for the input ports, or plain
+  Mockito unit tests.
+* Service tests: plain unit tests with `@ExtendWith(MockitoExtension.class)`, `@Mock` for the output ports,
+  `@InjectMocks` for the service.
+* Persistence adapter tests: `@DataJpaTest` + `@Import(XPersistenceAdapter.class)` (embedded H2, rollback per
+  test), e.g. `infrastructure/persistence/UserPersistenceAdapterTest`. Use `saveAndFlush` on the Spring Data
+  repository when asserting a DB constraint; the `ERROR ... Unique index or primary key violation` log line in that
+  test is expected.
 * `@SpringBootTest` needs `pro_tube.store.dir` and `pro_tube.load_initial_data=false` passed as properties (see
   `ProtubeBackApplicationTests`).
 * JaCoCo fails the build below 50% line coverage per class or 75% instruction/line/method coverage overall.

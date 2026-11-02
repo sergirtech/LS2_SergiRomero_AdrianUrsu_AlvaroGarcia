@@ -1,6 +1,6 @@
 # Project status
 
-Update this file when a step is finished. Last update: 2026-10-20.
+Update this file when a step is finished. Last update: 2026-11-02.
 
 ## Epic 1 — Authentication (US-01, US-02) · branch `feature/auth` · in progress
 
@@ -44,3 +44,11 @@ temporary; there is no comments API or persistence yet. The backend `VideoServic
 so catalog loading and complete video details remain unfinished.
 
 Search (US-08) currently filters the five frontend preview entries client-side.
+
+## Refactor — hexagonal architecture · branch `feature/hexagonal-refactor` · in progress
+
+Backend moved to ports and adapters (`decisions.md` D20, layout in `architecture.md`). No API or behaviour change:
+same endpoints, status codes and JSON. Done: domain/application/infrastructure packages, ports, JPA and BCrypt
+adapters, tests moved and adapted (47 tests, JaCoCo thresholds met), docs updated. Pending: team agreement on D20,
+prompt approval (`prompts/03-hexagonal-refactor.md`), PR review and squash merge. Branches opened before this
+refactor will get package conflicts when they rebase.

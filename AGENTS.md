@@ -37,10 +37,12 @@ backend `./mvnw clean verify -Pcoverage` (the profile is a no-op, see "Mistakes 
 
 ## Architecture
 
-* Backend layering: `controller/` (REST under `/api/...`) → `services/` (business logic) → `repository/` (Spring
-  Data JPA) → JPA entities in `model/`. Controllers never talk to repositories directly. H2 is the dev datastore and
-  only a placeholder per NFR-01.
-* `configuration/MvcConfig` serves the video store under `/media/**`. The store path comes from
+* Backend uses hexagonal architecture (ports and adapters): `domain/` (plain Java model and exceptions) ←
+  `application/` (use cases: input ports in `port/in`, output ports in `port/out`, services) ← `infrastructure/`
+  (adapters: `web/` REST under `/api/...`, `persistence/` JPA, `security/`, `config/`). Dependencies only point
+  inwards; controllers use input ports, services use output ports. H2 is the dev datastore and only a placeholder
+  per NFR-01. Details in `backend/AGENTS.md`.
+* `infrastructure/config/MvcConfig` serves the video store under `/media/**`. The store path comes from
   `pro_tube.store.dir` (env var `ENV_PROTUBE_STORE_DIR`); never hardcode it.
 * Frontend calls the backend through `src/utils/Env.ts` (`${VITE_API_DOMAIN}/api`, `${VITE_MEDIA_DOMAIN}/media`).
 * Authentication (Epic 1, **in progress** on `feature/auth`): email + password, BCrypt hashes, server session
