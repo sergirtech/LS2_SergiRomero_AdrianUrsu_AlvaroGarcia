@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router';
 
 import App from '../App';
 import { AuthProvider } from '../useAuth';
+import { notifyFollowerCountChange } from '../utils/ProfileEvents';
 
 // Jest has no CSS transform (frontend/AGENTS.md), so App's stylesheet is replaced by an empty module.
 jest.mock('../App.css', () => ({}));
@@ -39,6 +40,7 @@ describe('App authentication', () => {
     expect(await screen.findByRole('button', { name: 'User access' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'User access' }));
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'My profile' })).toHaveAttribute('href', '/profile');
     expect(screen.getByText('ana')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Recommended' })).toBeInTheDocument();
   });
@@ -118,5 +120,27 @@ describe('App authentication', () => {
     expect(await screen.findByText('Stored comment')).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(4);
     expect(screen.getByRole('link', { name: /Mark Ronson - Uptown Funk/ })).toHaveAttribute('href', '/watch/0');
+  });
+
+  it('updates profile list and follower stats when their data changes', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(ana));
+    await renderApp('/profile/lists');
+
+    expect(screen.getByText('0')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('New list name'), { target: { value: 'Music' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create list' }));
+    expect(screen.getByText('1')).toBeInTheDocument();
+
+    act(() => notifyFollowerCountChange(1));
+    expect(screen.getByText('13')).toBeInTheDocument();
+  });
+
+  it('navigates from the profile menu to its history page', async () => {
+    fetchMock.mockResponseOnce('', { status: 401 });
+    await renderApp('/profile');
+
+    fireEvent.click(screen.getByRole('link', { name: 'Playback history' }));
+
+    expect(screen.getByRole('heading', { name: 'Playback history' })).toBeInTheDocument();
   });
 });

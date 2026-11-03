@@ -92,9 +92,14 @@ const Navbar = ({
             </div>
             {authReady &&
               (user ? (
-                <button type="button" className="pt-panel-action" onClick={onSignOut}>
-                  Sign out
-                </button>
+                <>
+                  <Link to="/profile" className="pt-panel-action">
+                    My profile
+                  </Link>
+                  <button type="button" className="pt-panel-action pt-panel-action-secondary" onClick={onSignOut}>
+                    Sign out
+                  </button>
+                </>
               ) : (
                 <Link to="/login" className="pt-panel-action">
                   Sign in

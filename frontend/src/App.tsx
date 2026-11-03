@@ -7,8 +7,10 @@ import Sidebar from './components/Sidebar';
 import VideoGrid from './components/VideoGrid';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
+import ProfilePage, { type ProfileList } from './components/ProfilePage';
 import WatchPage from './components/WatchPage';
 import type { Video } from './components/VideoCard';
+import { FOLLOWER_COUNT_CHANGE_EVENT } from './utils/ProfileEvents';
 
 const FEATURED_VIDEOS: Video[] = [
   {
@@ -47,12 +49,27 @@ function App() {
   const [query, setQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [profileLists, setProfileLists] = useState<ProfileList[]>([]);
+  const [followerCount, setFollowerCount] = useState(12);
   const { user, status, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.dataset.bsTheme = darkMode ? 'dark' : 'light';
   }, [darkMode]);
+
+  useEffect(() => {
+    const handleFollowerCountChange = (event: Event) => {
+      const { detail: change } = event as CustomEvent<number>;
+      if (!Number.isInteger(change)) {
+        return;
+      }
+      setFollowerCount((count) => Math.max(0, count + change));
+    };
+
+    window.addEventListener(FOLLOWER_COUNT_CHANGE_EVENT, handleFollowerCountChange);
+    return () => window.removeEventListener(FOLLOWER_COUNT_CHANGE_EVENT, handleFollowerCountChange);
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -83,6 +100,19 @@ function App() {
             <Route path="/watch/:videoId" element={<WatchPage videos={FEATURED_VIDEOS} />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/profile/*"
+              element={
+                <ProfilePage
+                  user={user}
+                  lists={profileLists}
+                  followerCount={followerCount}
+                  onCreateList={(name) =>
+                    setProfileLists((lists) => [...lists, { id: (lists.at(-1)?.id ?? 0) + 1, name }])
+                  }
+                />
+              }
+            />
           </Routes>
         </main>
       </div>

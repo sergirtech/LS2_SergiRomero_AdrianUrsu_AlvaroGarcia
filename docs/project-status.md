@@ -35,7 +35,9 @@ Known follow-ups:
 
 ## Other epics
 
-Not started: profile (US-03), upload and metadata (US-06, US-07), comments persistence (US-09).
+In progress: profile (US-03) frontend screen, profile navigation and in-session list creation. Profile/list data is
+not yet persisted by a backend API; the follower metric has no subscription API yet. This does not complete US-03.
+Upload and metadata (US-06, US-07), comments persistence (US-09) are not started.
 
 In progress: video catalog and playback (US-04, US-05). The frontend currently previews the first five files in
 `tooling/videos`, opens a selected MP4 with native browser controls and autoplay, shows the remaining previews as
