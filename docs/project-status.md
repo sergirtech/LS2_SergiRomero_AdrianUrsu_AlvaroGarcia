@@ -29,7 +29,9 @@ Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.
 Known follow-ups:
 * Commits so far on the branch don't follow Conventional Commits; the PR title must
   (`feat(auth): user registration and login (US-01, US-02)`), since it becomes the squash commit.
-* `prod` profile has no `ddl-auto` / migrations yet (NFR-01).
+* NFR-01: `prod` persists in PostgreSQL 16 (`docker compose up -d db`, schema via `ddl-auto=update`). Checked by
+  hand: a user registered in `prod` can still log in after a backend restart. No migrations (Flyway) yet, and the
+  backend is not in `compose.yaml` yet.
 * In prod (SPA inside the jar) a reload on `/login` or `/register` probably returns 404, because the backend
   doesn't forward those routes to `index.html`. Not verified. Fix in a deployment PR.
 
