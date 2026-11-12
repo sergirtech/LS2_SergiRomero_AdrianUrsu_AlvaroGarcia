@@ -8,7 +8,10 @@ import VideoGrid from './components/VideoGrid';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import WatchPage from './components/WatchPage';
+import ProfilePage from './components/ProfilePage';
 import type { Video } from './components/VideoCard';
+import { PROFILE_STATS_CHANGE_EVENT, type ProfileStats, type ProfileStatsChange } from './profileStats';
+import { useProfileLists } from './useProfileLists';
 
 const FEATURED_VIDEOS: Video[] = [
   {
@@ -43,16 +46,36 @@ const FEATURED_VIDEOS: Video[] = [
   },
 ];
 
+const applyStatChange = (current: number, change: number | undefined): number => {
+  if (typeof change !== 'number' || !Number.isSafeInteger(change)) return current;
+  const updated = current + change;
+  return Number.isSafeInteger(updated) && updated >= 0 ? updated : current;
+};
+
 function App() {
   const [query, setQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [profileStats, setProfileStats] = useState<ProfileStats>({ lists: 0, followers: 0 });
   const { user, status, logout } = useAuth();
+  const profileLists = useProfileLists(user?.id ?? null);
   const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.dataset.bsTheme = darkMode ? 'dark' : 'light';
   }, [darkMode]);
+
+  useEffect(() => {
+    const handleProfileStatsChange = (event: Event) => {
+      const { detail } = event as CustomEvent<ProfileStatsChange>;
+      if (!detail) return;
+
+      setProfileStats((current) => ({ ...current, followers: applyStatChange(current.followers, detail.followers) }));
+    };
+
+    window.addEventListener(PROFILE_STATS_CHANGE_EVENT, handleProfileStatsChange);
+    return () => window.removeEventListener(PROFILE_STATS_CHANGE_EVENT, handleProfileStatsChange);
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -83,6 +106,23 @@ function App() {
             <Route path="/watch/:videoId" element={<WatchPage videos={FEATURED_VIDEOS} />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/profile/*"
+              element={
+                <ProfilePage
+                  user={user}
+                  stats={{ ...profileStats, lists: profileLists.lists.length }}
+                  videos={FEATURED_VIDEOS}
+                  lists={profileLists.lists}
+                  listsLoading={profileLists.loading}
+                  listsError={profileLists.error}
+                  onCreateList={profileLists.createList}
+                  onAddVideo={profileLists.addVideo}
+                  onRemoveVideo={profileLists.removeVideo}
+                  onDeleteList={profileLists.deleteList}
+                />
+              }
+            />
           </Routes>
         </main>
       </div>
