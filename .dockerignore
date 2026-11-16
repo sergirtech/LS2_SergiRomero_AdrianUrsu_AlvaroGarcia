@@ -1,0 +1,15 @@
+# Only backend/ and frontend/ sources are needed to build the image (see Dockerfile).
+.git
+.github
+.idea
+.vscode
+.env
+docs
+prompts
+preset_devenvs
+resources
+tooling
+**/node_modules
+**/target
+**/dist
+**/coverage
