@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router';
 
 import App from '../App';
 import { AuthProvider } from '../useAuth';
+import { publishProfileStatsChange } from '../profileStats';
 
 // Jest has no CSS transform (frontend/AGENTS.md), so App's stylesheet is replaced by an empty module.
 jest.mock('../App.css', () => ({}));
@@ -26,6 +27,7 @@ const renderApp = async (path: string) => {
 describe('App authentication', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
+    window.localStorage.clear();
   });
 
   it('shows the user in the Navbar after logging in (L1)', async () => {
@@ -80,6 +82,63 @@ describe('App authentication', () => {
     await act(async () => {});
 
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
+  });
+
+  it('shows the current user profile and updates its statistics', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(ana));
+    await renderApp('/profile');
+
+    expect(screen.getByRole('heading', { name: 'ana' })).toBeInTheDocument();
+    expect(screen.getByText('ana@mail.com')).toBeInTheDocument();
+    expect(screen.getByLabelText('Channel statistics')).toHaveTextContent('0');
+
+    act(() => {
+      publishProfileStatsChange({ followers: 1 });
+    });
+
+    expect(screen.getByLabelText('Channel statistics')).toHaveTextContent('0');
+    expect(screen.getByLabelText('Channel statistics')).toHaveTextContent('1');
+
+    act(() => publishProfileStatsChange({ followers: 1 }));
+
+    expect(screen.getByLabelText('Channel statistics')).toHaveTextContent('2');
+  });
+
+  it('creates a persisted list and adds a catalog song to it', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(ana));
+    await renderApp('/profile/lists');
+
+    fireEvent.change(screen.getByLabelText('New list name'), { target: { value: 'Road trip' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create list' }));
+
+    expect(await screen.findByRole('heading', { name: 'Road trip' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Channel statistics')).toHaveTextContent('1');
+
+    fireEvent.change(screen.getByLabelText('Add a song to Road trip'), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add song' }));
+
+    expect(
+      screen.getByRole('link', { name: 'Mark Ronson - Uptown Funk (Official Video) ft. Bruno Mars' })
+    ).toHaveAttribute('href', '/watch/0');
+    expect(JSON.parse(window.localStorage.getItem('protube:user-lists:1') ?? '[]')).toEqual([
+      expect.objectContaining({ name: 'Road trip', videoIds: ['0'] }),
+    ]);
+  });
+
+  it('restores the signed-in user lists from browser storage', async () => {
+    window.localStorage.setItem(
+      'protube:user-lists:1',
+      JSON.stringify([{ id: 'list-1', name: 'Road trip', videoIds: ['0'] }])
+    );
+    fetchMock.mockResponseOnce(JSON.stringify(ana));
+
+    await renderApp('/profile/lists');
+
+    expect(await screen.findByRole('heading', { name: 'Road trip' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Mark Ronson - Uptown Funk (Official Video) ft. Bruno Mars' })
+    ).toHaveAttribute('href', '/watch/0');
+    expect(screen.getByLabelText('Channel statistics')).toHaveTextContent('1');
   });
 
   it('shows only the first five video thumbnails and filters them by title', async () => {

@@ -57,6 +57,7 @@ describe('Navbar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'User access' }));
     expect(screen.getByText('ana')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View profile' })).toHaveAttribute('href', '/profile');
     expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     expect(onSignOut).toHaveBeenCalledTimes(1);

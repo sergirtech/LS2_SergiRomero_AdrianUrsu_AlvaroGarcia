@@ -43,8 +43,8 @@ imports; controllers depend on input ports, services on output ports; HTTP bodie
 `infrastructure/web/dto/`, never domain objects or JPA entities.
 
 Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the console at `/h2-console`
-(`jdbc:h2:mem:mydb`, user `sa`). `prod` points to PostgreSQL through `ENV_PROTUBE_DB_*` variables and defines no
-`ddl-auto`, so the schema strategy for prod is still open.
+(`jdbc:h2:mem:mydb`, user `sa`). `prod` points to PostgreSQL 16 (`compose.yaml`, service `db`) through `ENV_PROTUBE_DB_*`
+variables; the global `ddl-auto=update` creates/updates the schema there too (no migrations yet).
 
 ## Frontend (`frontend/`)
 

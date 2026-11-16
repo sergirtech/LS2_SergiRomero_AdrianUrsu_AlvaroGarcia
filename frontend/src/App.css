@@ -9,6 +9,7 @@
   --pt-accent: #ffd400;
   --pt-navbar-h: 60px;
   --pt-sidebar-w: 220px;
+  --pt-profile-avatar-ring: #fff;
 }
 
 html[data-bs-theme='dark'] {
@@ -649,4 +650,394 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
   color: var(--pt-muted);
   text-align: center;
   font-size: 0.875rem;
+}
+
+/* User profile */
+.pt-profile {
+  width: 100%;
+  min-height: calc(100vh - var(--pt-navbar-h) - 120px);
+  padding: clamp(24px, 5vw, 56px) clamp(20px, 7vw, 96px);
+  background: var(--pt-bg);
+  color: var(--pt-text);
+}
+
+.pt-profile-brand {
+  display: inline-flex;
+  margin-bottom: clamp(36px, 5vw, 56px);
+}
+
+.pt-profile-brand img {
+  display: block;
+  width: 116px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.pt-profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.pt-profile-avatar {
+  width: 104px;
+  height: 104px;
+  flex: 0 0 104px;
+  border: 7px solid var(--pt-profile-avatar-ring);
+  border-radius: 50%;
+  background: var(--pt-profile-avatar-ring);
+}
+
+.pt-profile-identity {
+  min-width: 0;
+}
+
+.pt-profile-identity h1 {
+  margin: 0 0 5px;
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 400;
+}
+
+.pt-profile-identity p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.92rem;
+}
+
+.pt-profile-stats {
+  display: flex;
+  gap: clamp(32px, 8vw, 96px);
+  margin-left: auto;
+  padding: 0 clamp(12px, 4vw, 48px);
+  text-align: center;
+}
+
+.pt-profile-stats div {
+  display: flex;
+  min-width: 54px;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pt-profile-stats strong {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.pt-profile-stats span {
+  font-size: 0.85rem;
+}
+
+.pt-profile-tabs {
+  display: flex;
+  gap: clamp(24px, 5vw, 64px);
+  margin: 30px 0 20px;
+  padding-left: 8px;
+}
+
+.pt-profile-tab {
+  position: relative;
+  padding: 8px 4px 12px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.pt-profile-tab:hover {
+  color: inherit;
+}
+
+.pt-profile-tab.active::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 5px;
+  background: var(--pt-accent);
+  content: '';
+}
+
+.pt-profile-links {
+  display: flex;
+  width: fit-content;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: -8px;
+}
+
+.pt-profile-link {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.pt-profile-link:hover {
+  background: var(--pt-surface);
+  color: inherit;
+}
+
+.pt-profile-link svg {
+  flex: 0 0 20px;
+}
+
+.pt-profile-placeholder {
+  max-width: 620px;
+  padding: 24px 8px;
+}
+
+.pt-profile-placeholder h2 {
+  margin-bottom: 12px;
+  font-size: 1.25rem;
+}
+
+.pt-profile-placeholder p {
+  color: var(--pt-muted);
+}
+
+.pt-profile-placeholder a {
+  color: var(--pt-text);
+  text-underline-offset: 3px;
+}
+
+.pt-profile-lists {
+  max-width: 1000px;
+  padding: 18px 8px 32px;
+}
+
+.pt-profile-lists > h2 {
+  margin-bottom: 6px;
+  font-size: 1.4rem;
+}
+
+.pt-lists-description,
+.pt-list-card-header p,
+.pt-list-empty {
+  color: var(--pt-muted);
+}
+
+.pt-list-create-form {
+  max-width: 560px;
+  margin: 24px 0 28px;
+}
+
+.pt-list-create-form label,
+.pt-list-add-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pt-list-create-form > div,
+.pt-list-add-form > div {
+  display: flex;
+  gap: 10px;
+}
+
+.pt-list-create-form input,
+.pt-list-add-form select {
+  min-width: 0;
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--pt-border);
+  border-radius: 8px;
+  background: var(--pt-surface);
+  color: var(--pt-text);
+}
+
+.pt-list-create-form input:focus,
+.pt-list-add-form select:focus {
+  border-color: var(--pt-accent);
+  outline: 2px solid color-mix(in srgb, var(--pt-accent) 30%, transparent);
+}
+
+.pt-list-primary {
+  flex: 0 0 auto;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pt-accent);
+  color: #2e294e;
+  font-weight: 600;
+}
+
+.pt-list-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pt-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 18px;
+}
+
+.pt-list-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--pt-border);
+  border-radius: 12px;
+  background: var(--pt-surface);
+}
+
+.pt-list-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pt-list-card-header h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.pt-list-card-header p {
+  margin: 0;
+  font-size: 0.83rem;
+}
+
+.pt-list-delete,
+.pt-list-songs button {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid var(--pt-border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--pt-text);
+  font-size: 0.8rem;
+}
+
+.pt-list-delete:hover,
+.pt-list-songs button:hover {
+  background: var(--pt-bg);
+}
+
+.pt-list-add-form {
+  margin-bottom: 18px;
+}
+
+.pt-list-add-form select {
+  color-scheme: inherit;
+}
+
+.pt-list-songs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-list-songs li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--pt-border);
+}
+
+.pt-list-songs a {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pt-text);
+  text-overflow: ellipsis;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pt-list-songs a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pt-list-songs span {
+  grid-column: 1;
+  color: var(--pt-muted);
+  font-size: 0.82rem;
+}
+
+.pt-list-songs button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.pt-list-empty {
+  padding: 12px 0;
+}
+
+.pt-list-error {
+  max-width: 560px;
+  margin: 12px 0;
+  color: #b42318;
+}
+
+.pt-lists-signin {
+  margin: 24px 0;
+}
+
+.pt-lists-signin a {
+  color: var(--pt-text);
+}
+
+.pt-panel-signout {
+  margin-top: 8px;
+}
+
+@media (max-width: 620px) {
+  .pt-profile {
+    padding: 24px 20px;
+  }
+
+  .pt-profile-brand {
+    margin-bottom: 32px;
+  }
+
+  .pt-profile-summary {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .pt-profile-avatar {
+    width: 76px;
+    height: 76px;
+    flex-basis: 76px;
+  }
+
+  .pt-profile-stats {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 36px;
+    margin: 8px 0 0 92px;
+    padding: 0;
+  }
+
+  .pt-profile-tabs {
+    gap: 20px;
+    margin-top: 28px;
+    padding-left: 0;
+  }
+
+  .pt-profile-tab {
+    font-size: 0.82rem;
+  }
+
+  .pt-list-create-form > div,
+  .pt-list-add-form > div {
+    align-items: stretch;
+  }
+
+  .pt-list-create-form > div {
+    flex-direction: column;
+  }
 }
