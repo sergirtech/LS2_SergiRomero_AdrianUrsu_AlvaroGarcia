@@ -4,6 +4,8 @@ import { getEnv } from '../utils/Env';
 
 export interface Video {
   id: string;
+  /** Base name of the files in the media store; falls back to id for old fixtures. */
+  fileKey?: string;
   title: string;
   channel: string;
   viewCount: number;
@@ -32,7 +34,7 @@ const VideoCard = ({ video }: Props) => {
             </div>
           ) : (
             <img
-              src={`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.id)}.webp`}
+              src={`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.fileKey ?? video.id)}.webp`}
               alt={`${video.title} thumbnail`}
               loading="lazy"
               onError={() => setThumbnailFailed(true)}

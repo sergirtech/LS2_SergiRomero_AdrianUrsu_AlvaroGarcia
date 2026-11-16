@@ -4,12 +4,8 @@ import fetchMock from 'jest-fetch-mock';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
 import { AuthProvider } from '../../useAuth';
+import { mockApi, reply, videoDetail, videoPage, videoSummary } from '../../testUtils/mockApi';
 import WatchPage from '../WatchPage';
-
-const videos = [
-  { id: '0', title: 'Featured video', channel: 'Featured channel', viewCount: 1200 },
-  { id: '1', title: 'Recommended video', channel: 'Other channel', viewCount: 2400 },
-];
 
 const ana = { id: 1, email: 'ana@mail.com', username: 'ana' };
 const metadata = {
@@ -21,12 +17,21 @@ const metadata = {
   },
 };
 
-const renderWatchPage = async (path = '/watch/0') => {
+const api = (overrides: Record<string, unknown> = {}) =>
+  mockApi({
+    '/auth/me': ana,
+    '/videos/1': videoDetail(1, 'Featured video'),
+    '/videos?page=0&size=12': videoPage([videoSummary(1, 'Featured video'), videoSummary(2, 'Recommended video')]),
+    '/key-1.json': metadata,
+    ...overrides,
+  });
+
+const renderWatchPage = async (path = '/watch/1') => {
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={[path]}>
         <Routes>
-          <Route path="/watch/:videoId" element={<WatchPage videos={videos} />} />
+          <Route path="/watch/:videoId" element={<WatchPage />} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>
@@ -39,25 +44,26 @@ describe('WatchPage', () => {
     fetchMock.resetMocks();
   });
 
-  it('autoplays the selected video, loads saved comments and shows recommendations', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify(ana)).mockResponseOnce(JSON.stringify(metadata));
+  it('plays the video from the API, loads saved comments and shows recommendations', async () => {
+    api();
     await renderWatchPage();
 
-    const player = screen.getByLabelText('Featured video');
-    expect(player).toHaveAttribute('src', 'development/0.mp4');
+    const player = await screen.findByLabelText('Featured video');
+    expect(player).toHaveAttribute('src', 'development/key-1.mp4');
+    expect(player).toHaveAttribute('poster', 'development/key-1.webp');
     expect(player).toHaveAttribute('autoplay');
     expect(player).toHaveAttribute('controls');
+    expect(screen.getByText('Channel 1')).toBeInTheDocument();
     expect(await screen.findByText('A stored comment')).toBeInTheDocument();
-    expect(screen.getByText('Another stored comment')).toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(1);
-    expect(screen.getByRole('link', { name: /Recommended video/ })).toHaveAttribute('href', '/watch/1');
+    expect(await screen.findAllByRole('article')).toHaveLength(1);
+    expect(screen.getByRole('link', { name: /Recommended video/ })).toHaveAttribute('href', '/watch/2');
   });
 
   it('lets a signed-in user add a temporary comment', async () => {
-    fetchMock.mockResponseOnce(JSON.stringify(ana)).mockResponseOnce(JSON.stringify(metadata));
+    api();
     await renderWatchPage();
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Add a comment' }), {
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Add a comment' }), {
       target: { value: '  My temporary comment  ' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
@@ -68,7 +74,7 @@ describe('WatchPage', () => {
   });
 
   it('prompts signed-out users to sign in before commenting', async () => {
-    fetchMock.mockResponseOnce('', { status: 401 }).mockResponseOnce(JSON.stringify(metadata));
+    api({ '/auth/me': reply(401) });
     await renderWatchPage();
 
     expect(await screen.findByRole('link', { name: 'Sign in to add a comment' })).toHaveAttribute('href', '/login');
@@ -76,17 +82,23 @@ describe('WatchPage', () => {
   });
 
   it('shows an error when saved comments cannot be loaded', async () => {
-    fetchMock.mockResponseOnce('', { status: 401 }).mockResponseOnce('Unavailable', { status: 503 });
+    api({ '/key-1.json': reply(503) });
     await renderWatchPage();
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not load comments (HTTP 503).');
   });
 
   it('shows a not-found message for an unknown video', async () => {
-    fetchMock.mockResponseOnce('', { status: 401 });
-    await renderWatchPage('/watch/unknown');
+    api({ '/videos/1': reply(404) });
+    await renderWatchPage();
 
-    expect(screen.getByRole('heading', { name: 'Video not found' })).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole('heading', { name: 'Video not found' })).toBeInTheDocument();
+  });
+
+  it('shows an error when the video cannot be loaded', async () => {
+    api({ '/videos/1': reply(500) });
+    await renderWatchPage();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load the video (HTTP 500).');
   });
 });

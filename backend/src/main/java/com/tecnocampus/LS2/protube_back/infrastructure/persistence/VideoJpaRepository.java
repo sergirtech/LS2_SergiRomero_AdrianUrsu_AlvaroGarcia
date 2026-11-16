@@ -1,0 +1,7 @@
+package com.tecnocampus.LS2.protube_back.infrastructure.persistence;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface VideoJpaRepository extends JpaRepository<VideoJpaEntity, Long> {
+    boolean existsByFileKey(String fileKey);
+}

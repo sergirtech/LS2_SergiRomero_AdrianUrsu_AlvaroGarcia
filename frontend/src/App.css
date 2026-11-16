@@ -578,6 +578,12 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
   color: var(--pt-text);
 }
 
+.pt-load-more {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0;
+}
+
 /* Loading skeleton */
 .pt-skeleton {
   background: linear-gradient(90deg, var(--pt-surface) 25%, var(--pt-surface-2) 50%, var(--pt-surface) 75%);

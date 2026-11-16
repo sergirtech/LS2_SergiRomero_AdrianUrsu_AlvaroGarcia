@@ -1,8 +1,8 @@
 # Project status
 
-Update this file when a step is finished. Last update: 2026-11-02.
+Update this file when a step is finished. Last update: 2026-11-16.
 
-## Epic 1 — Authentication (US-01, US-02) · branch `feature/auth` · in progress
+## Epic 1 — Authentication (US-01, US-02) · merged to `main` (#2)
 
 Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.md). Decisions:
 [`decisions.md`](decisions.md). Acceptance criteria: R1–R3 = US-01, L1–L3 = US-02 (see `REQUIREMENT.md`).
@@ -24,7 +24,7 @@ Prompt: [`prompts/02-auth-register-login.md`](../prompts/02-auth-register-login.
 | F5   | `Navbar` signed-in state + sign out                                        | L1, L3     | done             |
 | F6   | Frontend tests                                                             | DoD        | done             |
 | C1   | Manual end-to-end check of R1–R3 and L1–L3                                 | all        | done             |
-| C2   | Prompt approved, PR reviewed, squash merge                                 | DoD        | next             |
+| C2   | Prompt approved, PR reviewed, squash merge                                 | DoD        | done (#2)        |
 
 Known follow-ups:
 * Commits so far on the branch don't follow Conventional Commits; the PR title must
@@ -35,22 +35,42 @@ Known follow-ups:
 * In prod (SPA inside the jar) a reload on `/login` or `/register` probably returns 404, because the backend
   doesn't forward those routes to `index.html`. Not verified. Fix in a deployment PR.
 
+## Epic 3 — Video catalog (US-04) · branch `feature/video-catalog` · in progress
+
+Prompt: [`prompts/04-video-catalog.md`](../prompts/04-video-catalog.md). Decision: D21 in
+[`decisions.md`](decisions.md).
+
+| Step | Task                                                                                     | Status |
+|------|------------------------------------------------------------------------------------------|--------|
+| B1   | Domain `Video`, `PageResult`, `VideoNotFoundException`; ports `ListVideosUseCase`, `GetVideoUseCase`, `ImportVideosUseCase`, `VideoRepository`, `VideoMetadataSource` | done |
+| B2   | `VideoService` (clamped pagination, get by id, idempotent import)                        | done   |
+| B3   | JPA adapter (`video` table) and store adapter `JsonVideoMetadataSource`                  | done   |
+| B4   | `AppStartupRunner` import (also in `prod`), `GET /api/videos?page=&size=`, `GET /api/videos/{id}`, 404 JSON | done |
+| B5   | Backend tests (67 tests, JaCoCo thresholds met)                                          | done   |
+| F1   | `videosApi.ts`, `useVideos` (pages of 12, load more, retry); home with skeleton, error and "Load more" | done |
+| F2   | `WatchPage` loads the video by id from the API, not-found and error states               | done   |
+| F3   | Frontend tests (`testUtils/mockApi` answers by URL; 81 tests)                            | done   |
+| F4   | `Sidebar` fix: every item is a real link with the active state of the current page; Upload (`/upload`) and My videos (`/my-videos`) show a `ComingSoonPage`, History goes to the existing `/profile/history` placeholder | done |
+| C1   | Manual check: 60 grabber videos, load more until the end, open a video from page 3, `prod` restart without duplicates | next |
+| C2   | Prompt approved, PR reviewed, squash merge                                               | pending |
+
+Known limits, left for later stories:
+* Search filters only the pages already loaded (US-08 moves it to the backend).
+* Comments still come from each video's `.json` and the ones written in the UI are not saved (US-09).
+* `WatchPage` shows title and channel, not the description yet (US-05).
+* Profile lists use a fixed sample of 5 videos stored in `localStorage` (US-03).
+
 ## Other epics
 
-Not started: profile (US-03), upload and metadata (US-06, US-07), comments persistence (US-09).
+Done on `main`: base profile page (#6, frontend only: profile data and lists live in `localStorage`, no profile API
+yet), PostgreSQL setup for `prod` (#5).
 
-In progress: video catalog and playback (US-04, US-05). The frontend currently previews the first five files in
-`tooling/videos`, opens a selected MP4 with native browser controls and autoplay, shows the remaining previews as
-recommendations, and reads sample comments from each video's JSON metadata. Comments submitted in the UI are
-temporary; there is no comments API or persistence yet. The backend `VideoService` still returns a placeholder list,
-so catalog loading and complete video details remain unfinished.
+Not started: profile API (US-03), video details beyond title/channel (US-05), upload and metadata (US-06, US-07),
+search on the backend (US-08), comments persistence (US-09), replies and likes (US-10), analytics (US-11), E2E tests
+(NFR-02), full `docker compose` delivery (NFR-03).
 
-Search (US-08) currently filters the five frontend preview entries client-side.
-
-## Refactor — hexagonal architecture · branch `feature/hexagonal-refactor` · in progress
+## Refactor — hexagonal architecture · merged to `main` (#4)
 
 Backend moved to ports and adapters (`decisions.md` D20, layout in `architecture.md`). No API or behaviour change:
 same endpoints, status codes and JSON. Done: domain/application/infrastructure packages, ports, JPA and BCrypt
-adapters, tests moved and adapted (47 tests, JaCoCo thresholds met), docs updated. Pending: team agreement on D20,
-prompt approval (`prompts/03-hexagonal-refactor.md`), PR review and squash merge. Branches opened before this
-refactor will get package conflicts when they rebase.
+adapters, tests moved and adapted (47 tests, JaCoCo thresholds met), docs updated. Squash-merged in #4.

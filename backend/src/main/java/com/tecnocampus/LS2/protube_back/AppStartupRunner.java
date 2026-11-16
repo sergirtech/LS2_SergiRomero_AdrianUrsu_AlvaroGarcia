@@ -1,42 +1,33 @@
 package com.tecnocampus.LS2.protube_back;
 
-import com.tecnocampus.LS2.protube_back.application.port.in.ListVideosUseCase;
+import com.tecnocampus.LS2.protube_back.application.port.in.ImportVideosUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+/** On startup, imports into the catalog the store videos that are not in the database yet (idempotent). */
 @Component
 public class AppStartupRunner implements ApplicationRunner {
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AppStartupRunner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AppStartupRunner.class);
 
-    @Autowired
-    ListVideosUseCase listVideosUseCase;
+    private final ImportVideosUseCase importVideosUseCase;
+    private final boolean loadInitialData;
 
-    // Example variables from our implementation. 
-    // Feel free to adapt them to your needs
-    private final Environment env;
-    private final Path rootPath;
-    private final Boolean loadInitialData;
-
-    public AppStartupRunner(Environment env) {
-        this.env = env;
-        final var rootDir = env.getProperty("pro_tube.store.dir");
-        this.rootPath = Paths.get(rootDir);
-        loadInitialData = env.getProperty("pro_tube.load_initial_data", Boolean.class);
-
-
+    public AppStartupRunner(ImportVideosUseCase importVideosUseCase,
+                            @Value("${pro_tube.load_initial_data:false}") boolean loadInitialData) {
+        this.importVideosUseCase = importVideosUseCase;
+        this.loadInitialData = loadInitialData;
     }
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
-        // Should your backend perform any task during the bootstrap, do it here
+    public void run(ApplicationArguments args) {
+        if (!loadInitialData) {
+            LOG.info("pro_tube.load_initial_data=false: video import skipped");
+            return;
+        }
+        LOG.info("Imported {} new videos from the store", importVideosUseCase.importFromStore());
     }
 }

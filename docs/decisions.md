@@ -87,3 +87,14 @@ Trade-offs accepted to keep it simple: `@Service` stays on the application servi
 `@Configuration` class; ports live in `application/port` (not in `domain`); a JPA entity + mapper duplicates the
 `User` fields. `UserNotFoundException` replaces Spring's `UsernameNotFoundException` in the application;
 `AppUserDetailsService` translates it, and `ApiExceptionHandler` answers 401 for it, so the API behaves as before.
+
+## D21 — Video catalog in the database, imported from the store on startup (Proposed, US-04)
+The catalog is a `video` table, not a directory listing on every request, so pagination, search (US-08), owners and
+metadata edits (US-06/07) and analytics (US-11) can query it. On startup `AppStartupRunner` reads every videoGrabber
+`{fileKey}.json` in `pro_tube.store.dir` and inserts the ones whose `fileKey` is not stored yet; files without a
+`.mp4`, without a title or with invalid JSON are skipped with a warning. The import is idempotent, so
+`pro_tube.load_initial_data=true` in `prod` as well (otherwise the catalog would be empty there).
+Each video has two keys: the database `id` (URLs `/watch/{id}`, `/api/videos/{id}`) and the `fileKey` (file names in
+the store). Uploaded videos (US-06) will get their own `fileKey` without clashing with the grabber ids.
+`GET /api/videos?page=&size=` (default 12, max 48, ordered by `id`) clamps out-of-range values instead of answering
+400, so the list never errors. Tags, categories and comments of the JSON are not imported yet (US-07, US-09).
