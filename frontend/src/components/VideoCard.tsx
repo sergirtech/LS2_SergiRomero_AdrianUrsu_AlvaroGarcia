@@ -6,7 +6,9 @@ export interface Video {
   id: string;
   title: string;
   channel: string;
-  viewCount: number;
+  viewCount?: number;
+  description?: string;
+  thumbnailUrl?: string | null;
 }
 
 interface Props {
@@ -15,16 +17,23 @@ interface Props {
 
 const VideoCard = ({ video }: Props) => {
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
-  const formattedViews = new Intl.NumberFormat('en', {
-    notation: 'compact',
-    maximumFractionDigits: 1,
-  }).format(video.viewCount);
+  const formattedViews =
+    video.viewCount === undefined
+      ? null
+      : new Intl.NumberFormat('en', {
+          notation: 'compact',
+          maximumFractionDigits: 1,
+        }).format(video.viewCount);
+  const thumbnailUrl =
+    video.thumbnailUrl === undefined
+      ? `${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.id)}.webp`
+      : video.thumbnailUrl;
 
   return (
     <Link to={`/watch/${encodeURIComponent(video.id)}`} className="pt-card-link">
       <article className="pt-card">
         <div className="pt-thumb">
-          {thumbnailFailed ? (
+          {!thumbnailUrl || thumbnailFailed ? (
             <div className="pt-thumb-placeholder" data-testid="thumb-placeholder">
               <svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true">
                 <path d="M8 5v14l11-7z" fill="currentColor" />
@@ -32,7 +41,7 @@ const VideoCard = ({ video }: Props) => {
             </div>
           ) : (
             <img
-              src={`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.id)}.webp`}
+              src={thumbnailUrl}
               alt={`${video.title} thumbnail`}
               loading="lazy"
               onError={() => setThumbnailFailed(true)}
@@ -46,10 +55,14 @@ const VideoCard = ({ video }: Props) => {
             </h3>
             <p className="pt-card-meta">
               {video.channel}
-              <span className="pt-meta-separator" aria-hidden="true">
-                ·
-              </span>
-              {formattedViews} views
+              {formattedViews !== null && (
+                <>
+                  <span className="pt-meta-separator" aria-hidden="true">
+                    ·
+                  </span>
+                  {formattedViews} views
+                </>
+              )}
             </p>
           </div>
         </div>

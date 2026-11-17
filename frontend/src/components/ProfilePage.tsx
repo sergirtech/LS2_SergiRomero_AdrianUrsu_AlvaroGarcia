@@ -6,6 +6,10 @@ import type { ProfileStats } from '../profileStats';
 import type { Video } from './VideoCard';
 import type { UserList } from '../useProfileLists';
 import ProfileListsPage from './ProfileListsPage';
+import ProfileVideoManager, { type ProfileVideoManagerProps } from './ProfileVideoManager';
+import ProfileCommentsManager from './ProfileCommentsManager';
+import type { MyComment } from '../useMyComments';
+import ProfilePhotoManager from './ProfilePhotoManager';
 
 interface Props {
   user: User | null;
@@ -14,10 +18,26 @@ interface Props {
   lists: UserList[];
   listsLoading: boolean;
   listsError: string | null;
-  onCreateList: (name: string) => boolean;
-  onAddVideo: (listId: string, videoId: string) => boolean;
-  onRemoveVideo: (listId: string, videoId: string) => boolean;
-  onDeleteList: (listId: string) => boolean;
+  onCreateList: (name: string) => Promise<boolean>;
+  onRenameList: (listId: string, name: string) => Promise<boolean>;
+  onAddVideo: (listId: string, videoId: string) => Promise<boolean>;
+  onRemoveVideo: (listId: string, videoId: string) => Promise<boolean>;
+  onDeleteList: (listId: string) => Promise<boolean>;
+  photoUrl: string | null;
+  photoLoading: boolean;
+  photoSaving: boolean;
+  photoError: string | null;
+  onUploadPhoto: (file: File) => Promise<boolean>;
+  onDeletePhoto: () => Promise<boolean>;
+  videoManager?: Omit<ProfileVideoManagerProps, 'user'>;
+  commentsManager?: {
+    comments: MyComment[];
+    loading: boolean;
+    error: string | null;
+    onRetry: () => void;
+    onEdit: (id: number, text: string) => Promise<void>;
+    onDelete: (id: number) => Promise<void>;
+  };
 }
 
 const PROFILE_LINKS = [
@@ -54,9 +74,18 @@ const ProfilePage = ({
   listsLoading,
   listsError,
   onCreateList,
+  onRenameList,
   onAddVideo,
   onRemoveVideo,
   onDeleteList,
+  photoUrl,
+  photoLoading,
+  photoSaving,
+  photoError,
+  onUploadPhoto,
+  onDeletePhoto,
+  videoManager,
+  commentsManager,
 }: Props) => {
   const { pathname } = useLocation();
   const isProfileHome = pathname === '/profile' || pathname === '/profile/';
@@ -69,11 +98,21 @@ const ProfilePage = ({
         </Link>
 
         <div className="pt-profile-summary">
-          <img className="pt-profile-avatar" src={defaultUser} alt="" />
+          <img className="pt-profile-avatar" src={photoUrl ?? defaultUser} alt="" />
           <div className="pt-profile-identity">
             <h1>{user?.username ?? 'Your profile'}</h1>
             <p>{user?.email ?? 'Sign in to see your profile information'}</p>
           </div>
+          {user && (
+            <ProfilePhotoManager
+              photoUrl={photoUrl}
+              loading={photoLoading}
+              saving={photoSaving}
+              error={photoError}
+              onUpload={onUploadPhoto}
+              onDelete={onDeletePhoto}
+            />
+          )}
 
           <div className="pt-profile-stats" aria-label="Channel statistics">
             <div>
@@ -101,23 +140,27 @@ const ProfilePage = ({
       </nav>
 
       {isProfileHome ? (
-        <nav className="pt-profile-links" aria-label="Profile shortcuts">
-          {PROFILE_LINKS.map((item) => (
-            <Link key={item.path} to={item.path} className="pt-profile-link">
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path
-                  d={item.icon}
-                  stroke="currentColor"
-                  strokeWidth="1.7"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </nav>
+        <>
+          <nav className="pt-profile-links" aria-label="Profile shortcuts">
+            {PROFILE_LINKS.map((item) => (
+              <Link key={item.path} to={item.path} className="pt-profile-link">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <path
+                    d={item.icon}
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
+          {videoManager && <ProfileVideoManager user={user} {...videoManager} />}
+          {user && commentsManager && <ProfileCommentsManager {...commentsManager} />}
+        </>
       ) : pathname === '/profile/lists' ? (
         <ProfileListsPage
           lists={lists}
@@ -126,6 +169,7 @@ const ProfilePage = ({
           error={listsError}
           canEdit={user !== null}
           onCreateList={onCreateList}
+          onRenameList={onRenameList}
           onAddVideo={onAddVideo}
           onRemoveVideo={onRemoveVideo}
           onDeleteList={onDeleteList}

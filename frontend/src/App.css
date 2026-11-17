@@ -300,6 +300,33 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
   padding: 0 0.4rem;
 }
 
+.pt-load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+
+.pt-load-more > div {
+  width: 100%;
+  height: 1px;
+}
+
+.pt-video-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--pt-text);
+}
+
+.pt-video-error p {
+  margin: 0;
+}
+
 .pt-watch-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
@@ -333,6 +360,12 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
   border-bottom: 1px solid var(--pt-border);
   color: var(--pt-muted);
   font-weight: 600;
+}
+
+.pt-watch-description {
+  margin-bottom: 20px;
+  color: var(--pt-muted);
+  white-space: pre-wrap;
 }
 
 .pt-watch-recommendations h2,
@@ -686,6 +719,28 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
   border: 7px solid var(--pt-profile-avatar-ring);
   border-radius: 50%;
   background: var(--pt-profile-avatar-ring);
+  object-fit: cover;
+}
+
+.pt-profile-photo-manager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 32px 128px;
+  color: var(--pt-muted);
+  font-size: 0.875rem;
+}
+
+.pt-profile-photo-manager input {
+  max-width: min(100%, 320px);
+  color: var(--pt-text);
+}
+
+.pt-profile-photo-manager p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--pt-danger, #c33);
 }
 
 .pt-profile-identity {
@@ -784,6 +839,155 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
 
 .pt-profile-link svg {
   flex: 0 0 20px;
+}
+
+.pt-profile-videos {
+  max-width: 1000px;
+  padding: 28px 8px 32px;
+}
+
+.pt-profile-videos > h2 {
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+}
+
+.pt-video-upload-form {
+  max-width: 640px;
+  margin-bottom: 32px;
+  padding: 20px;
+  border: 1px solid var(--pt-border);
+  border-radius: 12px;
+  background: var(--pt-surface);
+}
+
+.pt-video-upload-form h3,
+.pt-profile-videos > h3 {
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+}
+
+.pt-video-upload-form label,
+.pt-owned-video-list label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.pt-video-upload-form input:not([type='file']),
+.pt-video-upload-form textarea,
+.pt-owned-video-list input,
+.pt-owned-video-list textarea {
+  display: block;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--pt-border);
+  border-radius: 8px;
+  background: var(--pt-bg);
+  color: var(--pt-text);
+}
+
+.pt-video-upload-form input[type='file'] {
+  display: block;
+  max-width: 100%;
+  margin: 8px 0 18px;
+  color: var(--pt-text);
+}
+
+.pt-video-upload-form textarea,
+.pt-owned-video-list textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.pt-owned-video-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-owned-video-list article {
+  padding: 16px;
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  background: var(--pt-surface);
+}
+
+.pt-owned-video-list article > a {
+  color: var(--pt-text);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.pt-owned-video-list article > p {
+  margin: 8px 0 14px;
+  color: var(--pt-muted);
+}
+
+.pt-owned-video-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pt-video-management-error {
+  color: var(--bs-danger);
+}
+
+.pt-video-management-error p {
+  margin-bottom: 8px;
+}
+
+.pt-video-management-status {
+  color: var(--pt-muted);
+}
+
+.pt-profile-comments {
+  max-width: 1000px;
+  padding: 18px 8px 32px;
+}
+
+.pt-profile-comments > h2 {
+  font-size: 1.4rem;
+}
+
+.pt-profile-comments ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-profile-comments li {
+  padding: 14px;
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  background: var(--pt-surface);
+}
+
+.pt-profile-comments li a {
+  color: var(--pt-text);
+  font-weight: 700;
+}
+
+.pt-profile-comments textarea {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+  margin: 8px 0;
+  padding: 9px 12px;
+  border: 1px solid var(--pt-border);
+  border-radius: 8px;
+  background: var(--pt-bg);
+  color: var(--pt-text);
+}
+
+.pt-profile-comments button {
+  margin: 4px 8px 4px 0;
 }
 
 .pt-profile-placeholder {

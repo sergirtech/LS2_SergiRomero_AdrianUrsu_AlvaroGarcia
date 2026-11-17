@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 
@@ -20,10 +20,11 @@ const renderListsPage = (overrides: Partial<Parameters<typeof ProfileListsPage>[
     loading: false,
     error: null,
     canEdit: true,
-    onCreateList: jest.fn(() => true),
-    onAddVideo: jest.fn(() => true),
-    onRemoveVideo: jest.fn(() => true),
-    onDeleteList: jest.fn(() => true),
+    onCreateList: jest.fn(async () => true),
+    onRenameList: jest.fn(async () => true),
+    onAddVideo: jest.fn(async () => true),
+    onRemoveVideo: jest.fn(async () => true),
+    onDeleteList: jest.fn(async () => true),
     ...overrides,
   };
 
@@ -36,16 +37,16 @@ const renderListsPage = (overrides: Partial<Parameters<typeof ProfileListsPage>[
 };
 
 describe('ProfileListsPage', () => {
-  it('creates a named list', () => {
+  it('creates a named list', async () => {
     const props = renderListsPage();
 
     fireEvent.change(screen.getByLabelText('New list name'), { target: { value: '  Workout  ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create list' }));
 
-    expect(props.onCreateList).toHaveBeenCalledWith('  Workout  ');
+    await waitFor(() => expect(props.onCreateList).toHaveBeenCalledWith('  Workout  '));
   });
 
-  it('adds an available song and clears the selector after a successful add', () => {
+  it('adds an available song and clears the selector after a successful add', async () => {
     const props = renderListsPage({ lists: [existingList] });
     const songSelect = screen.getByLabelText('Add a song to Road trip');
 
@@ -53,19 +54,23 @@ describe('ProfileListsPage', () => {
     fireEvent.change(songSelect, { target: { value: 'song-2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add song' }));
 
-    expect(props.onAddVideo).toHaveBeenCalledWith('list-1', 'song-2');
-    expect(songSelect).toHaveValue('');
+    await waitFor(() => expect(props.onAddVideo).toHaveBeenCalledWith('list-1', 'song-2'));
+    await waitFor(() => expect(songSelect).toHaveValue(''));
   });
 
-  it('renders songs and supports removing a song and deleting its list', () => {
+  it('renders songs and supports renaming, removing a song, and deleting its list', async () => {
     const props = renderListsPage({ lists: [existingList] });
 
     expect(screen.getByRole('link', { name: 'First song' })).toHaveAttribute('href', '/watch/song-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Rename Road trip list' }));
+    fireEvent.change(screen.getByLabelText('Rename Road trip'), { target: { value: 'Summer drive' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save name' }));
     fireEvent.click(screen.getByRole('button', { name: 'Remove First song from Road trip' }));
     fireEvent.click(screen.getByRole('button', { name: 'Delete Road trip list' }));
 
-    expect(props.onRemoveVideo).toHaveBeenCalledWith('list-1', 'song-1');
-    expect(props.onDeleteList).toHaveBeenCalledWith('list-1');
+    await waitFor(() => expect(props.onRenameList).toHaveBeenCalledWith('list-1', 'Summer drive'));
+    await waitFor(() => expect(props.onRemoveVideo).toHaveBeenCalledWith('list-1', 'song-1'));
+    await waitFor(() => expect(props.onDeleteList).toHaveBeenCalledWith('list-1'));
   });
 
   it('shows persistence errors and loading status', () => {
@@ -78,6 +83,7 @@ describe('ProfileListsPage', () => {
           error="Could not save your lists."
           canEdit
           onCreateList={jest.fn()}
+          onRenameList={jest.fn()}
           onAddVideo={jest.fn()}
           onRemoveVideo={jest.fn()}
           onDeleteList={jest.fn()}
@@ -97,6 +103,7 @@ describe('ProfileListsPage', () => {
           error={null}
           canEdit={false}
           onCreateList={jest.fn()}
+          onRenameList={jest.fn()}
           onAddVideo={jest.fn()}
           onRemoveVideo={jest.fn()}
           onDeleteList={jest.fn()}

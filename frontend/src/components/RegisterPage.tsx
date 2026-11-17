@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { AuthError, useAuth, type RegisterData } from '../useAuth';
+import { GOOGLE_OAUTH_URL } from '../utils/Env';
 
 type FieldErrors = Partial<Record<keyof RegisterData, string>>;
 
@@ -107,6 +108,10 @@ const RegisterPage = () => {
           {submitting ? 'Creating account...' : 'Create account'}
         </button>
       </form>
+      <p className="text-center mt-3 mb-2">Or create an account with</p>
+      <a className="btn btn-outline-secondary w-100" href={GOOGLE_OAUTH_URL}>
+        Continue with Google
+      </a>
       <p className="mt-3">
         Already have an account? <Link to="/login">Sign in</Link>
       </p>

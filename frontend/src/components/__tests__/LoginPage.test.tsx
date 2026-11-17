@@ -71,6 +71,15 @@ describe('LoginPage', () => {
     expect(loginCalls()).toHaveLength(0);
   });
 
+  it('offers Google OAuth through the configured API origin', async () => {
+    await renderLogin();
+
+    expect(screen.getByRole('link', { name: 'Continue with Google' })).toHaveAttribute(
+      'href',
+      'other/oauth2/authorization/google'
+    );
+  });
+
   it('clears a field error when the user edits that field', async () => {
     await renderLogin();
     submit('', 'secret123');

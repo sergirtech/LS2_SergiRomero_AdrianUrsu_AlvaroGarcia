@@ -11,6 +11,7 @@ jest.mock('./src/utils/Env', () => ({
     API_BASE_URL: 'other',
     MEDIA_BASE_URL: 'development',
   }),
+  GOOGLE_OAUTH_URL: 'other/oauth2/authorization/google',
 }));
 
 fetchMock.enableMocks();

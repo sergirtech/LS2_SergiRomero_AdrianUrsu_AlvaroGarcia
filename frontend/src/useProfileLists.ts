@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { getEnv } from './utils/Env';
 
 export interface UserList {
   id: string;
@@ -6,115 +7,107 @@ export interface UserList {
   videoIds: string[];
 }
 
-const isUserListArray = (value: unknown): value is UserList[] =>
-  Array.isArray(value) &&
-  value.every(
-    (item) =>
-      typeof item === 'object' &&
-      item !== null &&
-      'id' in item &&
-      typeof item.id === 'string' &&
-      'name' in item &&
-      typeof item.name === 'string' &&
-      'videoIds' in item &&
-      Array.isArray(item.videoIds) &&
-      item.videoIds.every((videoId: unknown) => typeof videoId === 'string')
-  );
+const parsePlaylists = (value: unknown): UserList[] => {
+  if (!Array.isArray(value)) throw new Error('Lists response has an invalid format.');
+  return value.map((playlist) => {
+    if (
+      typeof playlist !== 'object' ||
+      playlist === null ||
+      typeof playlist.id !== 'number' ||
+      typeof playlist.name !== 'string' ||
+      !Array.isArray(playlist.videoIds) ||
+      !playlist.videoIds.every((id: unknown) => typeof id === 'number')
+    ) {
+      throw new Error('A list response has an invalid format.');
+    }
+    return {
+      id: String(playlist.id),
+      name: playlist.name,
+      videoIds: playlist.videoIds.map(String),
+    };
+  });
+};
+
+const apiUrl = () => `${getEnv().API_BASE_URL}/playlists`;
 
 export const useProfileLists = (userId: number | null) => {
   const [lists, setLists] = useState<UserList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const storageKey = userId === null ? null : `protube:user-lists:${userId}`;
 
-  useEffect(() => {
-    setLists([]);
-    setError(null);
-    if (storageKey === null) {
+  const refresh = useCallback(async () => {
+    if (userId === null) {
+      setLists([]);
       setLoading(false);
       return;
     }
-
     setLoading(true);
+    setError(null);
     try {
-      const saved = window.localStorage.getItem(storageKey);
-      if (saved !== null) {
-        const parsed: unknown = JSON.parse(saved);
-        if (!isUserListArray(parsed)) {
-          throw new Error('Saved lists have an invalid format.');
-        }
-        setLists(parsed);
-      }
-    } catch (loadError) {
+      const response = await fetch(apiUrl(), { credentials: 'include' });
+      if (!response.ok) throw new Error(`Could not load your lists (HTTP ${response.status}).`);
+      setLists(parsePlaylists(await response.json()));
+    } catch (loadError: unknown) {
       setError(loadError instanceof Error ? loadError.message : 'Could not load your lists.');
     } finally {
       setLoading(false);
     }
-  }, [storageKey]);
+  }, [userId]);
 
-  const save = useCallback(
-    (updatedLists: UserList[]): boolean => {
-      if (storageKey === null) {
+  useEffect(() => {
+    setLists([]);
+    setError(null);
+    void refresh();
+  }, [refresh]);
+
+  const mutate = useCallback(
+    async (url: string, method: string, body?: unknown): Promise<boolean> => {
+      if (userId === null) {
         setError('Sign in to manage your lists.');
         return false;
       }
-
+      setError(null);
       try {
-        window.localStorage.setItem(storageKey, JSON.stringify(updatedLists));
-        setLists(updatedLists);
-        setError(null);
+        const response = await fetch(url, {
+          method,
+          credentials: 'include',
+          ...(body === undefined
+            ? {}
+            : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+        });
+        if (!response.ok) throw new Error(`Could not save your lists (HTTP ${response.status}).`);
+        if (method === 'DELETE' && !url.includes('/videos/')) {
+          setLists((current) => current.filter((list) => url !== `${apiUrl()}/${list.id}`));
+        } else {
+          const updated = parsePlaylists([await response.json()])[0];
+          setLists((current) => {
+            const existing = current.some((list) => list.id === updated.id);
+            return existing ? current.map((list) => (list.id === updated.id ? updated : list)) : [updated, ...current];
+          });
+        }
         return true;
-      } catch {
-        setError('Could not save your lists. Check your browser storage and try again.');
+      } catch (saveError: unknown) {
+        setError(saveError instanceof Error ? saveError.message : 'Could not save your lists.');
         return false;
       }
     },
-    [storageKey]
+    [userId]
   );
 
-  const createList = useCallback(
-    (name: string): boolean => {
-      const normalizedName = name.trim();
-      if (!normalizedName) return false;
-
-      return save([
-        ...lists,
-        {
-          id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
-          name: normalizedName,
-          videoIds: [],
-        },
-      ]);
-    },
-    [lists, save]
+  const createList = useCallback((name: string) => mutate(apiUrl(), 'POST', { name }), [mutate]);
+  const renameList = useCallback(
+    (listId: string, name: string) => mutate(`${apiUrl()}/${listId}`, 'PUT', { name }),
+    [mutate]
   );
-
   const addVideo = useCallback(
-    (listId: string, videoId: string): boolean => {
-      const updatedLists = lists.map((list) =>
-        list.id === listId && !list.videoIds.includes(videoId)
-          ? { ...list, videoIds: [...list.videoIds, videoId] }
-          : list
-      );
-      return save(updatedLists);
-    },
-    [lists, save]
+    (listId: string, videoId: string) => mutate(`${apiUrl()}/${listId}/videos/${videoId}`, 'POST'),
+    [mutate]
   );
-
   const removeVideo = useCallback(
-    (listId: string, videoId: string): boolean =>
-      save(
-        lists.map((list) =>
-          list.id === listId ? { ...list, videoIds: list.videoIds.filter((id) => id !== videoId) } : list
-        )
-      ),
-    [lists, save]
+    (listId: string, videoId: string) => mutate(`${apiUrl()}/${listId}/videos/${videoId}`, 'DELETE'),
+    [mutate]
   );
+  const deleteList = useCallback((listId: string) => mutate(`${apiUrl()}/${listId}`, 'DELETE'), [mutate]);
 
-  const deleteList = useCallback(
-    (listId: string): boolean => save(lists.filter((list) => list.id !== listId)),
-    [lists, save]
-  );
-
-  return { lists, loading, error, createList, addVideo, removeVideo, deleteList };
+  return { lists, loading, error, refresh, createList, renameList, addVideo, removeVideo, deleteList };
 };

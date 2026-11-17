@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${ENV_PROTUBE_DB_USER}
-      POSTGRES_PASSWORD: ${ENV_PROTUBE_DB_PASS}
+      POSTGRES_PASSWORD: ${ENV_PROTUBE_DB_PWD}
       POSTGRES_DB: ${ENV_PROTUBE_DB}
     ports:
       - "5432:5432"

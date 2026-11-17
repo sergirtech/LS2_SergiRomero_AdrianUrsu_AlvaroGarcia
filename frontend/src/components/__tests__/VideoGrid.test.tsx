@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 
@@ -10,6 +10,19 @@ const videos = [
 ];
 
 describe('VideoGrid', () => {
+  const originalIntersectionObserver = globalThis.IntersectionObserver;
+
+  afterEach(() => {
+    if (originalIntersectionObserver) {
+      Object.defineProperty(globalThis, 'IntersectionObserver', {
+        configurable: true,
+        value: originalIntersectionObserver,
+      });
+    } else {
+      Reflect.deleteProperty(globalThis, 'IntersectionObserver');
+    }
+  });
+
   it('renders correctly', () => {
     const { asFragment } = render(
       <MemoryRouter>
@@ -55,6 +68,39 @@ describe('VideoGrid', () => {
       </MemoryRouter>
     );
     expect(screen.getByText('No videos found.')).toBeInTheDocument();
+  });
+
+  it('loads the next page when scrolling reaches the sentinel', () => {
+    const onLoadMore = jest.fn();
+    let triggerIntersection: (() => void) | null = null;
+    const observerFactory = jest.fn((callback: IntersectionObserverCallback) => {
+      triggerIntersection = () =>
+        callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+      return { observe: jest.fn(), disconnect: jest.fn() } as unknown as IntersectionObserver;
+    });
+    Object.defineProperty(globalThis, 'IntersectionObserver', {
+      configurable: true,
+      value: observerFactory,
+    });
+
+    render(<VideoGrid videos={[]} hasMore onLoadMore={onLoadMore} />);
+
+    expect(observerFactory).toHaveBeenCalledTimes(1);
+    act(() => triggerIntersection?.());
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('provides a load-more button when a continuation page exists', () => {
+    const onLoadMore = jest.fn();
+    render(
+      <MemoryRouter>
+        <VideoGrid videos={videos} hasMore onLoadMore={onLoadMore} />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load more videos' }));
+
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
   });
 
   it('renders loading skeleton cards', () => {

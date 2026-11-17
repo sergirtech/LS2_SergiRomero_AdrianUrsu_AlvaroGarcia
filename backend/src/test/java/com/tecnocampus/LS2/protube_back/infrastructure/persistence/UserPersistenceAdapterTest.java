@@ -40,6 +40,17 @@ class UserPersistenceAdapterTest {
     }
 
     @Test
+    void findsGoogleAccountByStableSubject() {
+        userRepository.save(new User(null, "google@mail.com", "google-user", null, "google-subject"));
+
+        User found = userRepository.findByGoogleSubject("google-subject").orElseThrow();
+
+        assertEquals("google@mail.com", found.getEmail());
+        assertEquals("google-user", found.getUsername());
+        assertNull(found.getPasswordHash());
+    }
+
+    @Test
     void existsChecksEmailAndUsername() {
         userRepository.save(user("sergi@mail.com", "sergi"));
 

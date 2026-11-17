@@ -38,4 +38,13 @@ class AppUserDetailsServiceTest {
 
         assertThrows(UsernameNotFoundException.class, () -> appUserDetailsService.loadUserByUsername("x@y.com"));
     }
+
+    @Test
+    void doesNotAllowPasswordLoginForGoogleOnlyAccount() {
+        when(findUserUseCase.getByEmail("google@example.com"))
+                .thenReturn(new User(2L, "google@example.com", "google-user", null));
+
+        assertThrows(UsernameNotFoundException.class,
+                () -> appUserDetailsService.loadUserByUsername("google@example.com"));
+    }
 }

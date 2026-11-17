@@ -4,7 +4,9 @@ import com.tecnocampus.LS2.protube_back.application.service.VideoService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 
 
 @SpringBootTest({
@@ -16,9 +18,14 @@ class ProtubeBackApplicationTests {
     @Autowired
     VideoService videoService;
 
+    @Autowired
+    ApplicationContext applicationContext;
+
     @Test
-    void shouldStartApp() {
+    void shouldStartAppWithoutGoogleCredentials() {
         Assertions.assertNotNull(videoService);
+        Assertions.assertFalse(applicationContext.containsBean("googleClientRegistrationRepository"));
+        Assertions.assertFalse(applicationContext.getBeansOfType(ClientRegistrationRepository.class).size() > 0);
     }
 
 }

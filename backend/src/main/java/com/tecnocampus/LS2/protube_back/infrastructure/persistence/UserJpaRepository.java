@@ -9,6 +9,8 @@ interface UserJpaRepository extends JpaRepository<UserJpaEntity, Long> {
 
     Optional<UserJpaEntity> findByEmail(String email);
 
+    Optional<UserJpaEntity> findByGoogleSubject(String googleSubject);
+
     boolean existsByEmail(String email);
 
     boolean existsByUsername(String username);

@@ -9,41 +9,89 @@ interface Props {
   loading: boolean;
   error: string | null;
   canEdit: boolean;
-  onCreateList: (name: string) => boolean;
-  onAddVideo: (listId: string, videoId: string) => boolean;
-  onRemoveVideo: (listId: string, videoId: string) => boolean;
-  onDeleteList: (listId: string) => boolean;
+  onCreateList: (name: string) => Promise<boolean>;
+  onRenameList: (listId: string, name: string) => Promise<boolean>;
+  onAddVideo: (listId: string, videoId: string) => Promise<boolean>;
+  onRemoveVideo: (listId: string, videoId: string) => Promise<boolean>;
+  onDeleteList: (listId: string) => Promise<boolean>;
 }
 
 interface ListCardProps {
   list: UserList;
   videos: Video[];
+  onRenameList: Props['onRenameList'];
   onAddVideo: Props['onAddVideo'];
   onRemoveVideo: Props['onRemoveVideo'];
   onDeleteList: Props['onDeleteList'];
 }
 
-const ListCard = ({ list, videos, onAddVideo, onRemoveVideo, onDeleteList }: ListCardProps) => {
+const ListCard = ({ list, videos, onRenameList, onAddVideo, onRemoveVideo, onDeleteList }: ListCardProps) => {
   const [selectedVideoId, setSelectedVideoId] = useState('');
+  const [editingName, setEditingName] = useState(false);
+  const [listName, setListName] = useState(list.name);
   const availableVideos = videos.filter((video) => !list.videoIds.includes(video.id));
-  const listedVideos = list.videoIds
-    .map((videoId) => videos.find((video) => video.id === videoId))
-    .filter((video): video is Video => video !== undefined);
+  const listedVideos = list.videoIds.map((videoId) => {
+    const video = videos.find((item) => item.id === videoId);
+    return { id: videoId, title: video?.title ?? `Video ${videoId}`, channel: video?.channel ?? 'Unavailable video' };
+  });
 
-  const submitSong = (event: FormEvent<HTMLFormElement>) => {
+  const submitSong = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (selectedVideoId && onAddVideo(list.id, selectedVideoId)) setSelectedVideoId('');
+    if (selectedVideoId && (await onAddVideo(list.id, selectedVideoId))) setSelectedVideoId('');
   };
+
+  const submitName = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (await onRenameList(list.id, listName)) {
+      setListName(listName.trim());
+      setEditingName(false);
+    }
+  };
+
+  const renameButton = (
+    <button
+      type="button"
+      onClick={() => {
+        setListName(list.name);
+        setEditingName(true);
+      }}
+      aria-label={`Rename ${list.name} list`}
+    >
+      Edit name
+    </button>
+  );
 
   return (
     <article className="pt-list-card">
       <header className="pt-list-card-header">
         <div>
-          <h3>{list.name}</h3>
+          {editingName ? (
+            <form onSubmit={submitName}>
+              <label className="visually-hidden" htmlFor={`list-name-${list.id}`}>
+                Rename {list.name}
+              </label>
+              <input
+                id={`list-name-${list.id}`}
+                value={listName}
+                onChange={(event) => setListName(event.target.value)}
+                maxLength={80}
+                required
+              />
+              <button type="submit" disabled={!listName.trim()}>
+                Save name
+              </button>
+              <button type="button" onClick={() => setEditingName(false)}>
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <h3>{list.name}</h3>
+          )}
           <p>
             {list.videoIds.length} {list.videoIds.length === 1 ? 'song' : 'songs'}
           </p>
         </div>
+        {!editingName && renameButton}
         <button
           type="button"
           className="pt-list-delete"
@@ -106,15 +154,16 @@ const ProfileListsPage = ({
   error,
   canEdit,
   onCreateList,
+  onRenameList,
   onAddVideo,
   onRemoveVideo,
   onDeleteList,
 }: Props) => {
   const [listName, setListName] = useState('');
 
-  const submitList = (event: FormEvent<HTMLFormElement>) => {
+  const submitList = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (onCreateList(listName)) setListName('');
+    if (await onCreateList(listName)) setListName('');
   };
 
   return (
@@ -165,6 +214,7 @@ const ProfileListsPage = ({
               key={list.id}
               list={list}
               videos={videos}
+              onRenameList={onRenameList}
               onAddVideo={onAddVideo}
               onRemoveVideo={onRemoveVideo}
               onDeleteList={onDeleteList}

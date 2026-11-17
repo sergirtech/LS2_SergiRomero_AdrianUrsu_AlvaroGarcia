@@ -27,6 +27,9 @@ public class AppUserDetailsService implements UserDetailsService {
             // Spring Security turns this into a generic bad-credentials error (D11).
             throw new UsernameNotFoundException("User not found", ex);
         }
+        if (user.getPasswordHash() == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
         return org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
                 .password(user.getPasswordHash())
                 .roles("USER")

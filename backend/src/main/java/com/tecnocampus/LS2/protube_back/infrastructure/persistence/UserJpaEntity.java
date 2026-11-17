@@ -22,8 +22,11 @@ public class UserJpaEntity {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false)
+    @Column
     private String passwordHash;
+
+    @Column(name = "google_subject", unique = true)
+    private String googleSubject;
 
     protected UserJpaEntity() {
         // required by JPA
@@ -35,10 +38,19 @@ public class UserJpaEntity {
         entity.email = user.getEmail();
         entity.username = user.getUsername();
         entity.passwordHash = user.getPasswordHash();
+        entity.googleSubject = user.getGoogleSubject();
         return entity;
     }
 
     User toDomain() {
-        return new User(id, email, username, passwordHash);
+        return new User(id, email, username, passwordHash, googleSubject);
+    }
+
+    Long getId() {
+        return id;
+    }
+
+    String getUsername() {
+        return username;
     }
 }

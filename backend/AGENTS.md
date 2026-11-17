@@ -6,13 +6,15 @@ Rules for `backend/` only. General rules are in the root [`AGENTS.md`](../AGENTS
 
 * Java **21** (`java.version` in `pom.xml`; CI uses Corretto 21). Build with a JDK 21 (`JAVA_HOME`): on JDK 25 the
   Mockito tests and JaCoCo 0.8.12 instrumentation fail.
-* Spring Boot **3.3.3**: web, data-jpa, thymeleaf, Lombok, H2, PostgreSQL driver.
-* `spring-boot-starter-security` with the filter chain in `SecurityConfig`: public `POST /api/auth/register|login`
-  and `GET /api/videos/**`, `/api/hello`; the rest of `/api/**` needs a session (401, no redirect); logout at
+* Spring Boot **3.3.3**: web, data-jpa, thymeleaf, Lombok, OAuth2 client, H2, PostgreSQL driver.
+* `spring-boot-starter-security` and `spring-boot-starter-oauth2-client` with the filter chain in `SecurityConfig`:
+  public email/password registration/login, Google OAuth2 sign-in, `GET /api/videos/**` (except authenticated
+  `/api/videos/mine`) and `/api/hello`; the rest of `/api/**` needs a session (401, no redirect); logout at
   `POST /api/auth/logout` (204). Use `antMatcher(...)`, not string `requestMatchers`: the H2 console servlet makes
   string patterns ambiguous and the app fails to start. New public endpoints must be added to the permit list.
-* The OAuth2 Google properties in `application.properties` are unused leftovers: there is no OAuth2 client
-  dependency. Login is email + password (see `docs/decisions.md`).
+* Google OAuth2 uses `ENV_PROTUBE_GOOGLE_CLIENT_ID` and `ENV_PROTUBE_GOOGLE_CLIENT_SECRET`; never commit either.
+  Keep the normalized local email as the OAuth principal name so authenticated API ownership checks work for both
+  Google and email/password sessions (see `docs/decisions.md`).
 * Tests: JUnit 5 + Mockito + MockMvc via `spring-boot-starter-test`. JUnit 4 and Cucumber 6 are also on the
   classpath — write new tests with JUnit 5 (`org.junit.jupiter.api.*`), not `org.junit.Test`.
 

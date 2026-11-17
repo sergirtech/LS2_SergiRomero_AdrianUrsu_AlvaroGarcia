@@ -1,22 +1,58 @@
+import { useEffect, useRef } from 'react';
 import VideoCard from './VideoCard';
 import type { Video } from './VideoCard';
 
 interface Props {
   videos: Video[];
   compact?: boolean;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
 }
 
-const VideoGrid = ({ videos, compact = false }: Props) => {
-  if (videos.length === 0) {
-    return <p className="pt-empty">No videos found.</p>;
-  }
+const VideoGrid = ({ videos, compact = false, hasMore = false, loadingMore = false, onLoadMore }: Props) => {
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!onLoadMore || !hasMore || loadingMore || !loadMoreRef.current || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) onLoadMore();
+      },
+      { rootMargin: '0px 0px 300px 0px' }
+    );
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, onLoadMore]);
 
   return (
-    <div className={`pt-grid${compact ? ' pt-grid-compact' : ''}`}>
-      {videos.map((video) => (
-        <VideoCard key={video.id} video={video} />
-      ))}
-    </div>
+    <>
+      {videos.length === 0 ? (
+        <p className="pt-empty">No videos found.</p>
+      ) : (
+        <div className={`pt-grid${compact ? ' pt-grid-compact' : ''}`}>
+          {videos.map((video) => (
+            <VideoCard key={video.id} video={video} />
+          ))}
+        </div>
+      )}
+      {!compact && onLoadMore && hasMore && (
+        <div className="pt-load-more">
+          <div ref={loadMoreRef} aria-hidden="true" />
+          <button type="button" onClick={onLoadMore} disabled={loadingMore}>
+            {loadingMore ? 'Loading more videos...' : 'Load more videos'}
+          </button>
+        </div>
+      )}
+      {loadingMore && (
+        <p className="visually-hidden" role="status">
+          Loading more videos...
+        </p>
+      )}
+    </>
   );
 };
 

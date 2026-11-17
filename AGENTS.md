@@ -45,9 +45,9 @@ backend `./mvnw clean verify -Pcoverage` (the profile is a no-op, see "Mistakes 
 * `infrastructure/config/MvcConfig` serves the video store under `/media/**`. The store path comes from
   `pro_tube.store.dir` (env var `ENV_PROTUBE_STORE_DIR`); never hardcode it.
 * Frontend calls the backend through `src/utils/Env.ts` (`${VITE_API_DOMAIN}/api`, `${VITE_MEDIA_DOMAIN}/media`).
-* Authentication (Epic 1, **in progress** on `feature/auth`): email + password, BCrypt hashes, server session
-  (`JSESSIONID` cookie) with Spring Security. See `docs/decisions.md` for the reasons and `docs/project-status.md`
-  for which steps are done.
+* Authentication (Epic 1, **in progress**): email + password and Google OAuth2, with a Spring Security server
+  session (`JSESSIONID` cookie). OAuth client credentials are environment-only. See `docs/decisions.md` and
+  `docs/project-status.md` for the decisions and status.
 
 ## Conventions
 

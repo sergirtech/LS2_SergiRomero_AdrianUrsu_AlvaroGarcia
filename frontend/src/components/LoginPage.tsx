@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { AuthError, useAuth } from '../useAuth';
+import { GOOGLE_OAUTH_URL } from '../utils/Env';
 
 interface LoginData {
   email: string;
@@ -94,6 +95,10 @@ const LoginPage = () => {
           {submitting ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
+      <p className="text-center mt-3 mb-2">Or</p>
+      <a className="btn btn-outline-secondary w-100" href={GOOGLE_OAUTH_URL}>
+        Continue with Google
+      </a>
       <p className="mt-3">
         Don't have an account? <Link to="/register">Create one</Link>
       </p>

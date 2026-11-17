@@ -2,6 +2,8 @@ package com.tecnocampus.LS2.protube_back.infrastructure.web;
 
 import com.tecnocampus.LS2.protube_back.domain.exception.UserAlreadyExistsException;
 import com.tecnocampus.LS2.protube_back.domain.exception.UserNotFoundException;
+import com.tecnocampus.LS2.protube_back.domain.exception.InvalidVideoException;
+import com.tecnocampus.LS2.protube_back.domain.exception.VideoNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +50,24 @@ class ApiExceptionHandlerTest {
 
                         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals(Map.of("message", "This email is already registered"), response.getBody());
+    }
+
+    @Test
+    void invalidVideoReturns400WithMessage() {
+        ResponseEntity<Map<String, Object>> response =
+                handler.handleInvalidVideo(new InvalidVideoException("Only .mp4 files are supported"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(Map.of("message", "Only .mp4 files are supported"), response.getBody());
+    }
+
+    @Test
+    void missingVideoReturns404WithMessage() {
+        ResponseEntity<Map<String, Object>> response =
+                handler.handleVideoNotFound(new VideoNotFoundException(14L));
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(Map.of("message", "Video 14 was not found"), response.getBody());
     }
 
     @Test

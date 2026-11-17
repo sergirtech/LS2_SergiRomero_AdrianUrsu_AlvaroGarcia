@@ -20,9 +20,16 @@ describe('ProfilePage', () => {
                 listsLoading={false}
                 listsError={null}
                 onCreateList={jest.fn()}
+                onRenameList={jest.fn()}
                 onAddVideo={jest.fn()}
                 onRemoveVideo={jest.fn()}
                 onDeleteList={jest.fn()}
+                photoUrl={null}
+                photoLoading={false}
+                photoSaving={false}
+                photoError={null}
+                onUploadPhoto={jest.fn(async () => true)}
+                onDeletePhoto={jest.fn(async () => true)}
               />
             }
           />
@@ -69,9 +76,16 @@ describe('ProfilePage', () => {
           listsLoading={false}
           listsError={null}
           onCreateList={jest.fn()}
+          onRenameList={jest.fn()}
           onAddVideo={jest.fn()}
           onRemoveVideo={jest.fn()}
           onDeleteList={jest.fn()}
+          photoUrl={null}
+          photoLoading={false}
+          photoSaving={false}
+          photoError={null}
+          onUploadPhoto={jest.fn(async () => true)}
+          onDeletePhoto={jest.fn(async () => true)}
         />
       </MemoryRouter>
     );

@@ -1,9 +1,8 @@
 package com.tecnocampus.LS2.protube_back.application.port.in;
 
-import java.util.List;
+import com.tecnocampus.LS2.protube_back.domain.model.VideoPage;
 
-/** Input port: video catalog (US-04). Still returns a placeholder list. */
+/** Input port for cursor-based video catalog browsing. */
 public interface ListVideosUseCase {
-
-    List<String> getVideos();
+    VideoPage getVideos(Long cursor, int limit);
 }

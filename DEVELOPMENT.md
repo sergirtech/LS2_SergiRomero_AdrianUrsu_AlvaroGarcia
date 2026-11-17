@@ -43,11 +43,12 @@ python3 main.py --store=/absolute/path/to/videos --id=10 --videos=../../resource
 | Variable                           | Needed for              | Description                                                                                      |
 |------------------------------------|-------------------------|--------------------------------------------------------------------------------------------------|
 | `ENV_PROTUBE_STORE_DIR`            | optional                | Overrides the default video store (`../tooling/videos/`, relative to `backend/`). Set it to an absolute folder path to use a different store. |
-| `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | Google OAuth login      | Google OAuth client id                                                                           |
-| `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | Google OAuth login      | Google OAuth client secret                                                                       |
+| `ENV_PROTUBE_GOOGLE_CLIENT_ID`     | optional Google OAuth  | Google OAuth client id; set together with the secret to enable Google login                     |
+| `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` | optional Google OAuth  | Google OAuth client secret; set together with the client id to enable Google login              |
+| `ENV_PROTUBE_FRONTEND_URL`         | optional                | OAuth success redirect (default: `http://localhost:5173` in dev, `/` in prod)                     |
 | `ENV_PROTUBE_DB`                   | `prod` profile          | PostgreSQL database name (see [Using PostgreSQL](#using-postgresql))                              |
 | `ENV_PROTUBE_DB_USER`              | `prod` profile          | PostgreSQL user                                                                                  |
-| `ENV_PROTUBE_DB_PASS`              | `prod` profile          | PostgreSQL password                                                                              |
+| `ENV_PROTUBE_DB_PWD`               | `prod` profile          | PostgreSQL password                                                                              |
 | `ENV_PROTUBE_DB_HOST`              | optional                | PostgreSQL host (default `localhost`; `db` when the backend runs inside docker compose)          |
 | `ENV_PROTUBE_DB_PORT`              | optional                | PostgreSQL port (default `5432`)                                                                 |
 
@@ -171,7 +172,11 @@ java -jar target/protube-back-0.0.1-SNAPSHOT.jar
 
 (IntelliJ: the **Create jar** run configuration runs `package` with the `prod` profile.) The video store defaults to
 `../tooling/videos/` relative to the process working directory; set `ENV_PROTUBE_STORE_DIR` to override it.
-`ENV_PROTUBE_DB`, `ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PASS` must be set: the production profile uses PostgreSQL.
+`ENV_PROTUBE_DB`, `ENV_PROTUBE_DB_USER` and `ENV_PROTUBE_DB_PWD` must be set: the production profile uses PostgreSQL.
+Google sign-in is optional: the backend starts with Google sign-in disabled when the client ID and secret are absent.
+Set both `ENV_PROTUBE_GOOGLE_CLIENT_ID` and `ENV_PROTUBE_GOOGLE_CLIENT_SECRET` to enable it. Register
+`http://localhost:8080/login/oauth2/code/google` as the development callback URI, and use the equivalent backend URI
+in production. Never put actual credentials in the repository or send them in chat.
 
 To only preview the production frontend bundle, without the backend: `cd frontend && npm run build:prod && npm run preview`.
 
@@ -184,7 +189,9 @@ keep using in-memory H2. Hibernate creates/updates the tables on startup (`sprin
    ```dotenv
    ENV_PROTUBE_DB=protube
    ENV_PROTUBE_DB_USER=protube
-   ENV_PROTUBE_DB_PASS=<choose a password>
+   ENV_PROTUBE_DB_PWD=<choose a password>
+   ENV_PROTUBE_GOOGLE_CLIENT_ID=<Google OAuth client id>
+   ENV_PROTUBE_GOOGLE_CLIENT_SECRET=<Google OAuth client secret>
    ```
    Variables already set in your shell or OS take precedence over `.env`, so keep both in sync.
 2. Start the database: `docker compose up -d db` (PostgreSQL 16, port `5432`, data kept in the `postgres_data`

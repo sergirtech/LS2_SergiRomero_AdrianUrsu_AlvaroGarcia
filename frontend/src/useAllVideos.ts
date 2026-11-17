@@ -1,31 +1,94 @@
-import { useEffect, useState } from 'react';
-import axios, { AxiosError } from 'axios';
-import { getEnv } from './utils/Env';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { getVideosUrl, parseVideoPage } from './videoApi';
+import type { Video } from './components/VideoCard';
 
-type LoadingState = 'loading' | 'success' | 'error' | 'idle';
+export function useVideoPages(endpoint: string, enabled = true) {
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const requestInFlight = useRef<Promise<void> | null>(null);
+  const requested = useRef(false);
 
-const ALL_VIDEOS_URL = `${getEnv().API_BASE_URL}/videos`;
-export function useAllVideos() {
-  const [value, setValue] = useState<string[]>([]);
-  const [message, setMessage] = useState<string>('Loading...');
-  const [loading, setLoading] = useState<LoadingState>('idle');
+  const requestPage = useCallback(
+    (cursor?: number): Promise<void> => {
+      if (requestInFlight.current) return requestInFlight.current;
+
+      const isInitialPage = cursor === undefined;
+      setError(null);
+      if (isInitialPage) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const request = (async () => {
+        try {
+          const url = cursor === undefined ? endpoint : `${endpoint}?cursor=${encodeURIComponent(String(cursor))}`;
+          const response = await fetch(url, { credentials: 'include' });
+          if (!response.ok) {
+            throw new Error(`Could not load videos (HTTP ${response.status}).`);
+          }
+
+          const page = parseVideoPage(await response.json());
+          setVideos((current) =>
+            isInitialPage
+              ? page.items
+              : [...current, ...page.items.filter((video) => !current.some((item) => item.id === video.id))]
+          );
+          setNextCursor(page.nextCursor);
+        } catch (requestError) {
+          setError(requestError instanceof Error ? requestError.message : 'Could not load videos.');
+        } finally {
+          requestInFlight.current = null;
+          setLoading(false);
+          setLoadingMore(false);
+        }
+      })();
+      requestInFlight.current = request;
+      return request;
+    },
+    [endpoint]
+  );
 
   useEffect(() => {
-    const getVideos = async () => {
-      try {
-        setLoading('loading');
-        const response = await axios.get<string[]>(ALL_VIDEOS_URL);
-        if (response.status === 200) {
-          setValue(response.data);
-        }
-        setLoading('success');
-      } catch (error: unknown) {
-        setLoading('error');
-        setMessage('Error fetching videos: ' + (error as AxiosError).message);
-      }
-    };
-    getVideos().then();
-  }, []);
+    if (!enabled || requested.current) return;
+    requested.current = true;
+    void requestPage();
+  }, [enabled, requestPage]);
 
-  return { value, message, loading };
+  const loadMore = useCallback(() => {
+    if (nextCursor !== null) {
+      void requestPage(nextCursor);
+    }
+  }, [nextCursor, requestPage]);
+
+  const retry = useCallback(() => {
+    if (videos.length === 0) {
+      void requestPage();
+    } else if (nextCursor !== null) {
+      void requestPage(nextCursor);
+    }
+  }, [nextCursor, requestPage, videos.length]);
+
+  const refresh = useCallback(async () => {
+    if (requestInFlight.current) await requestInFlight.current;
+    await requestPage();
+  }, [requestPage]);
+
+  return {
+    videos,
+    loading,
+    loadingMore,
+    error,
+    hasMore: nextCursor !== null,
+    loadMore,
+    refresh,
+    retry,
+  };
+}
+
+export function useAllVideos(enabled = true) {
+  return useVideoPages(getVideosUrl(), enabled);
 }

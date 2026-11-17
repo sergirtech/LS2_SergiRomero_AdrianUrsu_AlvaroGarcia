@@ -60,6 +60,15 @@ describe('RegisterPage', () => {
     expect(registerCalls()).toHaveLength(0);
   });
 
+  it('offers Google OAuth through the configured API origin', async () => {
+    await renderRegister();
+
+    expect(screen.getByRole('link', { name: 'Continue with Google' })).toHaveAttribute(
+      'href',
+      'other/oauth2/authorization/google'
+    );
+  });
+
   it('rejects an invalid email, short username and short password (R3)', async () => {
     await renderRegister();
     fill('ana@mail', 'an', 'short');

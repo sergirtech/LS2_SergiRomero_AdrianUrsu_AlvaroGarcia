@@ -7,3 +7,7 @@ export const getEnv = () => {
     __vite__: otherViteConfig,
   };
 };
+
+export const GOOGLE_OAUTH_URL = `${getEnv()
+  .API_BASE_URL.replace(/\/api\/?$/, '')
+  .replace(/\/$/, '')}/oauth2/authorization/google`;
