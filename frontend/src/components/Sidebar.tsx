@@ -6,7 +6,7 @@ interface Props {
 
 const ITEMS = [
   { label: 'Home', icon: 'M3 11l9-8 9 8v10h-6v-6H9v6H3z', to: '/' },
-  // Placeholder pages until US-06 (upload), US-07/US-11 (my videos) and the playback history are built.
+  // The playback history is still a placeholder page inside the profile.
   { label: 'Upload', icon: 'M12 16V4m0 0l-5 5m5-5l5 5M4 20h16', to: '/upload' },
   { label: 'My videos', icon: 'M4 5h16v14H4zM10 9v6l5-3z', to: '/my-videos' },
   { label: 'History', icon: 'M12 7v5l3 3M3 12a9 9 0 1 0 3-6.7M3 4v4h4', to: '/profile/history' },

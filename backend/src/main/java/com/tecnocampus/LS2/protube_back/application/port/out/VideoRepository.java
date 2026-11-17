@@ -13,5 +13,10 @@ public interface VideoRepository {
 
     PageResult<Video> findPage(int page, int size);
 
+    /** Videos of one owner, newest first. */
+    PageResult<Video> findPageByOwner(Long ownerId, int page, int size);
+
     boolean existsByFileKey(String fileKey);
+
+    void deleteById(Long id);
 }

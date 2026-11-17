@@ -1,7 +1,10 @@
 package com.tecnocampus.LS2.protube_back.infrastructure.web;
 
+import com.tecnocampus.LS2.protube_back.domain.exception.InvalidVideoException;
 import com.tecnocampus.LS2.protube_back.domain.exception.UserAlreadyExistsException;
 import com.tecnocampus.LS2.protube_back.domain.exception.UserNotFoundException;
+import com.tecnocampus.LS2.protube_back.domain.exception.VideoAccessDeniedException;
+import com.tecnocampus.LS2.protube_back.domain.exception.VideoStorageException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,5 +68,44 @@ class ApiExceptionHandlerTest {
                 .getAnnotation(ExceptionHandler.class);
 
         assertTrue(List.of(mapping.value()).contains(UserNotFoundException.class));
+    }
+
+    @Test
+    void invalidVideoReturns400WithTheRuleBroken() {
+        ResponseEntity<Map<String, Object>> response =
+                handler.handleInvalidVideo(new InvalidVideoException("Only .mp4 files are supported"));
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(Map.of("message", "Only .mp4 files are supported"), response.getBody());
+    }
+
+    @Test
+    void missingUploadFieldReturns400() {
+        assertEquals(HttpStatus.BAD_REQUEST, handler.handleMissingUploadField().getStatusCode());
+    }
+
+    @Test
+    void tooLargeUploadReturns413() {
+        ResponseEntity<Map<String, Object>> response = handler.handleTooLarge();
+
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, response.getStatusCode());
+        assertEquals("The video file must be 100 MB or smaller", response.getBody().get("message"));
+    }
+
+    @Test
+    void changingSomeoneElsesVideoReturns403() {
+        ResponseEntity<Map<String, Object>> response =
+                handler.handleVideoAccessDenied(new VideoAccessDeniedException(5L));
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    void storageFailureReturns500WithoutTheInternalDetail() {
+        ResponseEntity<Map<String, Object>> response =
+                handler.handleVideoStorage(new VideoStorageException("C:/secret/path", new RuntimeException()));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(Map.of("message", "The video could not be saved. Try again later."), response.getBody());
     }
 }

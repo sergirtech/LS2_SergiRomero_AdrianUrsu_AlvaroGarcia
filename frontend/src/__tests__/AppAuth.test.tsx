@@ -194,7 +194,11 @@ describe('App authentication', () => {
   });
 
   it('navigates between sections with the sidebar', async () => {
-    mockApi({ '/auth/me': ana, '/videos?page=0&size=12': videoPage([]) });
+    mockApi({
+      '/auth/me': ana,
+      '/videos?page=0&size=12': videoPage([]),
+      '/videos/mine?page=0&size=12': videoPage([]),
+    });
     await renderApp('/watch/1');
     const sidebar = within(screen.getByRole('navigation', { name: 'Main' }));
 

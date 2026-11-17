@@ -88,6 +88,33 @@ describe('WatchPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not load comments (HTTP 503).');
   });
 
+  it('shows the description, category and tags, and the edit link only to the owner (US-07)', async () => {
+    const uploaded = { ...videoDetail(1, 'Featured video'), ownerId: 1, tags: ['travel', 'beach'], category: 'Music' };
+    api({ '/videos/1': uploaded });
+    await renderWatchPage();
+
+    const details = await screen.findByRole('region', { name: 'Video details' });
+    expect(details).toHaveTextContent('A description');
+    expect(details).toHaveTextContent('Music');
+    expect(screen.getByRole('list', { name: 'Tags' })).toHaveTextContent('#travel#beach');
+    expect(screen.getByRole('link', { name: 'Edit video' })).toHaveAttribute('href', '/my-videos?edit=1');
+  });
+
+  it('hides the edit link from other users and on imported videos', async () => {
+    api({ '/videos/1': { ...videoDetail(1, 'Featured video'), ownerId: 2 } });
+    await renderWatchPage();
+    expect(await screen.findByLabelText('Featured video')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Edit video' })).not.toBeInTheDocument();
+  });
+
+  it('treats a missing grabber .json as no comments (uploaded videos)', async () => {
+    api({ '/key-1.json': reply(404) });
+    await renderWatchPage();
+
+    expect(await screen.findByText('No comments yet.')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('shows a not-found message for an unknown video', async () => {
     api({ '/videos/1': reply(404) });
     await renderWatchPage();

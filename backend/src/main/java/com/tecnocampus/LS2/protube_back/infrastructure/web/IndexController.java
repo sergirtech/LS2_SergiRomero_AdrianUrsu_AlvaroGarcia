@@ -8,7 +8,10 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class IndexController {
 
-    @GetMapping("")
+    // In prod the SPA is inside the jar. Its routes (react-router, see frontend/src/App.tsx) must also return
+    // index.html, or reloading /login or /register gives 404. Listed one by one on purpose: a catch-all pattern
+    // would also catch /assets/*.js and unknown /api/** paths. Add new frontend routes here.
+    @GetMapping({"/", "/login", "/register", "/watch/**", "/profile/**", "/upload", "/my-videos"})
     public ModelAndView home() {
         return new ModelAndView("index");
     }
