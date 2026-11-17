@@ -180,14 +180,16 @@ To only preview the production frontend bundle, without the backend: `cd fronten
 The `prod` profile persists data in PostgreSQL (NFR-01 in [REQUIREMENT.md](./REQUIREMENT.md)); `dev` and the tests
 keep using in-memory H2. Hibernate creates/updates the tables on startup (`spring.jpa.hibernate.ddl-auto=update`).
 
-1. Create a `.env` file in the repository root (it is git-ignored, never commit it). `docker compose` reads it:
+1. Optional: `compose.yaml` defaults the database, user and password to `protube` (local demo only, see
+   `docs/decisions.md` D21). To use other values, create a `.env` file in the repository root (it is git-ignored,
+   never commit it); `docker compose` reads it:
    ```dotenv
    ENV_PROTUBE_DB=protube
    ENV_PROTUBE_DB_USER=protube
    ENV_PROTUBE_DB_PASS=<choose a password>
    ```
    Variables already set in your shell or OS take precedence over `.env`, so keep both in sync.
-2. Start the database: `docker compose up -d db` (PostgreSQL 16, port `5432`, data kept in the `postgres_data`
+2. Start only the database: `docker compose up -d db` (PostgreSQL 16, port `5432`, data kept in the `postgres_data`
    volume). Check it with `docker exec -it postgres_db psql -U protube -d protube -c "\l"`.
 3. Spring Boot does not read `.env`: set the same `ENV_PROTUBE_DB*` variables in the shell, OS or IDE run
    configuration that starts the backend, then run it with the `prod` profile (see above).
@@ -195,6 +197,20 @@ keep using in-memory H2. Hibernate creates/updates the tables on startup (`sprin
 If port `5432` is taken (e.g. by a PostgreSQL installed on Windows), stop that service or map another host port in
 `compose.yaml` and set `ENV_PROTUBE_DB_PORT`. If you change the credentials after the first start, the volume keeps
 the old ones: recreate it with `docker compose down -v` (this deletes the data).
+
+### Run everything with Docker (delivery, NFR-03)
+
+```bash
+docker compose up --build
+```
+
+Then open <http://localhost:8080>. Compose starts two containers: `db` (PostgreSQL) and `app` (the `prod` jar, built
+by the root `Dockerfile`, which serves the SPA, `/api` and `/media`). `app` waits until the database is healthy,
+connects to it as host `db`, and mounts `tooling/videos/` as its video store (`/videos/`). No `.env` or environment
+variables are needed. Stop it with `docker compose down` (add `-v` to also delete the database data).
+
+The first build takes a few minutes (Maven, Node and npm downloads); later builds reuse the Maven cache. Rebuild the
+image after code changes with `docker compose up --build`. Ports `8080` and `5432` must be free.
 
 ## 6. Workflow reminders
 
