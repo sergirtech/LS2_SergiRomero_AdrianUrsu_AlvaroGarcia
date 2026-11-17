@@ -1,18 +1,42 @@
-version: "3.9"
-
+# docker compose up --build  ->  ProTube on http://localhost:8080 (NFR-03).
+# The DB defaults are for a local demo only (docs/decisions.md D21); override them with env vars or a .env file.
 services:
   db:
     image: postgres:16
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_USER: ${ENV_PROTUBE_DB_USER}
-      POSTGRES_PASSWORD: ${ENV_PROTUBE_DB_PASS}
-      POSTGRES_DB: ${ENV_PROTUBE_DB}
+      POSTGRES_USER: ${ENV_PROTUBE_DB_USER:-protube}
+      POSTGRES_PASSWORD: ${ENV_PROTUBE_DB_PASS:-protube}
+      POSTGRES_DB: ${ENV_PROTUBE_DB:-protube}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: protube_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV_PROTUBE_DB_HOST: db
+      ENV_PROTUBE_DB_PORT: 5432
+      ENV_PROTUBE_DB: ${ENV_PROTUBE_DB:-protube}
+      ENV_PROTUBE_DB_USER: ${ENV_PROTUBE_DB_USER:-protube}
+      ENV_PROTUBE_DB_PASS: ${ENV_PROTUBE_DB_PASS:-protube}
+      ENV_PROTUBE_STORE_DIR: /videos/
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./tooling/videos:/videos
 
 volumes:
   postgres_data:

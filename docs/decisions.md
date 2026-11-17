@@ -98,3 +98,11 @@ Each video has two keys: the database `id` (URLs `/watch/{id}`, `/api/videos/{id
 the store). Uploaded videos (US-06) will get their own `fileKey` without clashing with the grabber ids.
 `GET /api/videos?page=&size=` (default 12, max 48, ordered by `id`) clamps out-of-range values instead of answering
 400, so the list never errors. Tags, categories and comments of the JSON are not imported yet (US-07, US-09).
+## D21 — Docker delivery: one `app` container + PostgreSQL, demo defaults in compose (Proposed, confirm with the team)
+NFR-03 asks for `docker compose up` on a clean machine with no manual steps. The root `Dockerfile` builds the jar
+with the Maven `prod` profile, which already builds the frontend and serves it from the jar (same origin: no CORS,
+the `JSESSIONID` cookie just works), so compose has two services, `app` and `db`, instead of a separate nginx
+frontend. `app` waits for the `db` healthcheck and mounts `tooling/videos/` as the video store. To avoid a manual
+`.env` step, `compose.yaml` defaults the database, user and password to `protube`: a conscious exception to "no
+credentials in committed files", acceptable because it is a local demo database; real values override the defaults
+through environment variables or a git-ignored `.env`.
