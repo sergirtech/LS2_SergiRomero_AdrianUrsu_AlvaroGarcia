@@ -329,10 +329,47 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
 }
 
 .pt-watch-channel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--pt-border);
   color: var(--pt-muted);
   font-weight: 600;
+}
+
+/* Description, category and tags under the player (US-07) */
+.pt-watch-details {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--pt-surface);
+  border: 1px solid var(--pt-border);
+}
+
+.pt-watch-category {
+  margin-bottom: 8px;
+  color: var(--pt-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pt-watch-description {
+  margin-bottom: 8px;
+  white-space: pre-line;
+}
+
+.pt-watch-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--pt-muted);
+  font-size: 0.9rem;
 }
 
 .pt-watch-recommendations h2,
@@ -648,6 +685,76 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
 .pt-auth {
   max-width: 420px;
   margin: 48px auto;
+}
+
+/* Upload (US-06) and My videos (US-07) */
+.pt-video-form {
+  max-width: 640px;
+  margin: 32px auto;
+}
+
+.pt-video-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.pt-my-videos {
+  max-width: 900px;
+  margin: 24px auto;
+}
+
+.pt-my-videos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pt-my-video-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pt-my-video {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--pt-border);
+}
+
+.pt-my-video-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pt-my-video-title {
+  color: var(--pt-text);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.pt-my-video-title:hover {
+  text-decoration: underline;
+}
+
+.pt-my-video-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pt-muted);
+}
+
+.pt-my-video-editor {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--pt-surface);
+  border: 1px solid var(--pt-border);
 }
 
 .pt-footer {

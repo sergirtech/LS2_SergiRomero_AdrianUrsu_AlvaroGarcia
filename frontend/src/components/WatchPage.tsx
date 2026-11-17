@@ -67,6 +67,11 @@ const WatchPage = () => {
         const response = await fetch(`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(fileKey)}.json`, {
           signal: controller.signal,
         });
+        // Uploaded videos have no grabber .json: that just means no comments yet.
+        if (response.status === 404) {
+          setComments([]);
+          return;
+        }
         if (!response.ok) {
           throw new Error(`Could not load comments (HTTP ${response.status}).`);
         }
@@ -147,7 +152,28 @@ const WatchPage = () => {
         </video>
 
         <h1 className="pt-watch-title">{video.title}</h1>
-        <p className="pt-watch-channel">{video.author}</p>
+        <div className="pt-watch-channel">
+          <span>{video.author}</span>
+          {user && video.ownerId === user.id && (
+            <Link to={`/my-videos?edit=${video.id}`} className="btn btn-outline-secondary btn-sm">
+              Edit video
+            </Link>
+          )}
+        </div>
+
+        {(video.category || video.description || video.tags.length > 0) && (
+          <section className="pt-watch-details" aria-label="Video details">
+            {video.category && <p className="pt-watch-category">{video.category}</p>}
+            {video.description && <p className="pt-watch-description">{video.description}</p>}
+            {video.tags.length > 0 && (
+              <ul className="pt-watch-tags" aria-label="Tags">
+                {video.tags.map((tag) => (
+                  <li key={tag}>#{tag}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         <section className="pt-comments" aria-labelledby="comments-heading">
           <h2 id="comments-heading">Comments</h2>

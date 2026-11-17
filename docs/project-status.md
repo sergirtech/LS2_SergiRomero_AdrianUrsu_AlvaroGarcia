@@ -1,6 +1,6 @@
 # Project status
 
-Update this file when a step is finished. Last update: 2026-11-16.
+Update this file when a step is finished. Last update: 2026-11-17.
 
 ## Epic 1 — Authentication (US-01, US-02) · merged to `main` (#2)
 
@@ -59,16 +59,41 @@ Prompt: [`prompts/04-video-catalog.md`](../prompts/04-video-catalog.md). Decisio
 Known limits, left for later stories:
 * Search filters only the pages already loaded (US-08 moves it to the backend).
 * Comments still come from each video's `.json` and the ones written in the UI are not saved (US-09).
-* `WatchPage` shows title and channel, not the description yet (US-05).
+* `WatchPage` shows title and channel; description, category and tags arrived with US-06/07.
 * Profile lists use a fixed sample of 5 videos stored in `localStorage` (US-03).
+
+## Epic 4 — Video upload and management (US-06, US-07) · branch `feature/video-upload` · in progress
+
+Prompt: [`prompts/10-video-upload-management.md`](../prompts/10-video-upload-management.md). Decision: D22 in
+[`decisions.md`](decisions.md). Ported from the `US_division` branch onto the catalog model of `main` (D21).
+
+| Step | Task                                                                                     | Status |
+|------|------------------------------------------------------------------------------------------|--------|
+| B1   | Domain: `Video` with owner, tags and category; `VideoMetadata` rules; `InvalidVideoException`, `VideoAccessDeniedException`, `VideoStorageException` | done |
+| B2   | Ports `UploadVideoUseCase`, `EditVideoUseCase`, `DeleteVideoUseCase`, `ListMyVideosUseCase`, `VideoFileStore`; `VideoService` (MP4 checks, file removed if the insert fails, owner-only edit/delete) | done |
+| B3   | `video` table: `owner_id`, `category`, `video_tag`; `FileSystemVideoFileStore` (`.part` file renamed when complete) | done |
+| B4   | `POST /api/videos` (multipart), `PUT` / `DELETE /api/videos/{id}`, `GET /api/videos/mine` (session); 400/403/413/500 JSON | done |
+| B5   | Backend tests, including HTTP tests with the real security chain and a temporary store (115 tests, JaCoCo met) | done |
+| F1   | `videosApi.ts`: `uploadVideo`, `updateVideo`, `deleteVideo`, `fetchMyVideoPage`, `VideoApiError` | done |
+| F2   | `UploadPage` (`/upload`) and `MyVideosPage` (`/my-videos`: edit inline, delete with confirmation); visitors go to `/login` | done |
+| F3   | `WatchPage` shows description, category and tags, "Edit video" link for the owner; no comments error for uploads without `.json` | done |
+| F4   | Frontend tests (99 tests, coverage thresholds met)                                       | done   |
+| C1   | Manual API check on a running backend (Tomcat): 37 MB upload, `/media` playback with range requests, owner edit, 403 for another user, fake MP4 400, 105 MB file 413, delete removes the file | done |
+| C2   | Manual check of the pages in the browser (upload form, My videos, Edit video link)        | next   |
+| C3   | Prompt approved, PR reviewed, squash merge                                               | pending |
+
+Known limits:
+* Uploads have no thumbnail, duration or resolution (no ffmpeg in the backend yet).
+* A new upload appears at the end of the catalog, which is ordered by `id` (D21); to discuss with the team.
+* Deleting a video will also have to delete its comments and playlist entries when those branches are merged.
+* After a login triggered by `/upload`, the user lands on `/`, not back on `/upload`.
 
 ## Other epics
 
 Done on `main`: base profile page (#6, frontend only: profile data and lists live in `localStorage`, no profile API
 yet), PostgreSQL setup for `prod` (#5).
 
-Not started: profile API (US-03), video details beyond title/channel (US-05), upload and metadata (US-06, US-07),
-search on the backend (US-08), comments persistence (US-09), replies and likes (US-10), analytics (US-11), E2E tests
+Not started: profile API (US-03), search on the backend (US-08), comments persistence (US-09), replies and likes (US-10), analytics (US-11), E2E tests
 (NFR-02), full `docker compose` delivery (NFR-03).
 
 ## Refactor — hexagonal architecture · merged to `main` (#4)

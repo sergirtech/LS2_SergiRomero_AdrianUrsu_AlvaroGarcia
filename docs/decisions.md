@@ -106,3 +106,21 @@ frontend. `app` waits for the `db` healthcheck and mounts `tooling/videos/` as t
 `.env` step, `compose.yaml` defaults the database, user and password to `protube`: a conscious exception to "no
 credentials in committed files", acceptable because it is a local demo database; real values override the defaults
 through environment variables or a git-ignored `.env`.
+
+## D22 — Uploads go to the video store as files, owned by the uploader (Proposed, US-06 / US-07)
+An uploaded MP4 is written to `pro_tube.store.dir` as `upload-<uuid>.mp4`, next to the videoGrabber files, and gets a
+row in the same `video` table with `owner_id`, `tags` (table `video_tag`) and `category`. So the catalog, `/watch`
+and `/media` treat both kinds of video the same way, and the database only holds metadata (the `US_division` branch
+stored the bytes in the database instead; that does not scale to 100 MB files and was dropped).
+* Upload: `POST /api/videos` (multipart: `file`, `title`, `description`, `tags`, `category`), session required. Only
+  `.mp4` up to 100 MB whose bytes 4-7 are `ftyp`. The file is copied to a `.part` file and renamed when complete;
+  if the database insert fails the file is deleted, so nothing half-uploaded is published (US-06 criterion 3).
+* Imported videos have `owner_id = null`: nobody can edit or delete them.
+* Edit (`PUT /api/videos/{id}`: title, description, tags, category) and delete (`DELETE`, removes the row and the
+  files) are owner only: another user gets **403**, not 404, because US-07 asks for the action to be "denied".
+* Rules live in the domain (`VideoMetadata`: title 1-150, description up to 10 000, up to 10 tags of 30 characters,
+  lowercased without duplicates, category up to 50). The frontend repeats them only to answer faster.
+* `GET /api/videos/mine` lists the user's videos newest first. The public catalog keeps D21's `id` order, so a new
+  upload appears at the end of the catalog (to discuss with the team: newest first would move it to the top).
+* Uploads have no thumbnail (`.webp`), duration or resolution: the card falls back to its placeholder. Generating
+  them needs ffmpeg in the backend, left for later.

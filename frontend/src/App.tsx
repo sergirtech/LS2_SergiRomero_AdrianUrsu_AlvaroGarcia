@@ -9,7 +9,8 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import WatchPage from './components/WatchPage';
 import ProfilePage from './components/ProfilePage';
-import ComingSoonPage from './components/ComingSoonPage';
+import UploadPage from './components/UploadPage';
+import MyVideosPage from './components/MyVideosPage';
 import type { Video } from './components/VideoCard';
 import { PROFILE_STATS_CHANGE_EVENT, type ProfileStats, type ProfileStatsChange } from './profileStats';
 import { useProfileLists } from './useProfileLists';
@@ -115,8 +116,8 @@ function App() {
             <Route path="/watch/:videoId" element={<WatchPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/upload" element={<ComingSoonPage title="Upload a video" />} />
-            <Route path="/my-videos" element={<ComingSoonPage title="My videos" />} />
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/my-videos" element={<MyVideosPage />} />
             <Route
               path="/profile/*"
               element={

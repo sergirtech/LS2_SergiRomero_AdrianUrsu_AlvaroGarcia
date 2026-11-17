@@ -33,6 +33,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(antMatcher(HttpMethod.POST, "/api/auth/register"),
                                 antMatcher(HttpMethod.POST, "/api/auth/login")).permitAll()
+                        // Before the public GET /api/videos/** rule: the user's own videos need a session.
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/api/videos/mine")).authenticated()
                         .requestMatchers(antMatcher(HttpMethod.GET, "/api/videos/**"),
                                 antMatcher(HttpMethod.GET, "/api/hello")).permitAll()
                         .requestMatchers(antMatcher("/api/**")).authenticated()

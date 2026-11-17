@@ -41,6 +41,9 @@ export const videoDetail = (id: number, title: string): VideoDetailDto => ({
   width: 1920,
   height: 1080,
   likeCount: 10,
+  ownerId: null,
+  tags: [],
+  category: null,
 });
 
 export const videoPage = (items: VideoSummaryDto[], hasNext = false, page = 0): VideoPageDto => ({

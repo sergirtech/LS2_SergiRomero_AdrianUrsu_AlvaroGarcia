@@ -37,7 +37,20 @@ public class VideoPersistenceAdapter implements VideoRepository {
     }
 
     @Override
+    public PageResult<Video> findPageByOwner(Long ownerId, int page, int size) {
+        Page<VideoJpaEntity> result = jpaRepository.findByOwnerId(ownerId,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
+        return new PageResult<>(result.map(VideoJpaEntity::toDomain).getContent(), page, size,
+                result.getTotalElements());
+    }
+
+    @Override
     public boolean existsByFileKey(String fileKey) {
         return jpaRepository.existsByFileKey(fileKey);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        jpaRepository.deleteById(id);
     }
 }
