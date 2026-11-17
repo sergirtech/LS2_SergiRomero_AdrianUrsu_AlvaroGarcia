@@ -2,6 +2,7 @@ package com.tecnocampus.LS2.protube_back.infrastructure.web;
 
 import com.tecnocampus.LS2.protube_back.domain.exception.UserAlreadyExistsException;
 import com.tecnocampus.LS2.protube_back.domain.exception.UserNotFoundException;
+import com.tecnocampus.LS2.protube_back.domain.exception.VideoNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -26,6 +27,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(VideoNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleVideoNotFound(VideoNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
     }
 
     // UserNotFoundException: a session whose user no longer exists (e.g. GET /api/auth/me) is treated as signed out.

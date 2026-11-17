@@ -2,40 +2,59 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router';
 import { getEnv } from '../utils/Env';
 import { useAuth } from '../useAuth';
-import type { Video } from './VideoCard';
+import { useVideos } from '../useVideos';
+import { fetchVideo, VideoNotFoundError, type VideoDetailDto } from '../videosApi';
 import VideoGrid from './VideoGrid';
 import userIcon from '../assets/user/default-user.svg';
-
-interface Props {
-  videos: Video[];
-}
 
 interface VideoComment {
   author: string;
   text: string;
 }
 
+type VideoState = 'loading' | 'ready' | 'not-found' | 'error';
+
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 const isVideoComment = (value: unknown): value is VideoComment =>
   isRecord(value) && typeof value.author === 'string' && typeof value.text === 'string';
 
-const WatchPage = ({ videos }: Props) => {
-  const { videoId } = useParams();
+const WatchPage = () => {
+  const { videoId = '' } = useParams();
   const { user, status } = useAuth();
-  const video = videos.find((item) => item.id === videoId);
+  const { videos: recommendations } = useVideos();
+  const [video, setVideo] = useState<VideoDetailDto | null>(null);
+  const [videoState, setVideoState] = useState<VideoState>('loading');
+  const [videoError, setVideoError] = useState('');
   const [comments, setComments] = useState<VideoComment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [commentsError, setCommentsError] = useState('');
   const [newComment, setNewComment] = useState('');
+  const fileKey = video?.fileKey;
 
   useEffect(() => {
-    if (!video || status === 'loading') {
-      if (!video) {
-        setCommentsLoading(false);
-      }
-      return;
-    }
+    const controller = new AbortController();
+    setVideo(null);
+    setVideoState('loading');
+    fetchVideo(videoId, controller.signal)
+      .then((result) => {
+        setVideo(result);
+        setVideoState('ready');
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        if (error instanceof VideoNotFoundError) {
+          setVideoState('not-found');
+        } else {
+          setVideoError(error instanceof Error ? error.message : 'Could not load the video.');
+          setVideoState('error');
+        }
+      });
+    return () => controller.abort();
+  }, [videoId]);
+
+  useEffect(() => {
+    if (!fileKey || status === 'loading') return;
 
     const controller = new AbortController();
     setComments([]);
@@ -44,7 +63,8 @@ const WatchPage = ({ videos }: Props) => {
 
     const loadComments = async () => {
       try {
-        const response = await fetch(`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.id)}.json`, {
+        // US-09 will read comments from the API; until then they come from the grabber metadata.
+        const response = await fetch(`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(fileKey)}.json`, {
           signal: controller.signal,
         });
         if (!response.ok) {
@@ -70,9 +90,27 @@ const WatchPage = ({ videos }: Props) => {
 
     void loadComments();
     return () => controller.abort();
-  }, [video, status]);
+  }, [fileKey, status]);
 
-  if (!video) {
+  if (videoState === 'loading') {
+    return (
+      <p className="pt-empty" role="status">
+        Loading video...
+      </p>
+    );
+  }
+
+  if (videoState === 'error') {
+    return (
+      <div className="pt-error" role="alert">
+        <h2>Could not load the video</h2>
+        <p>{videoError}</p>
+        <Link to="/">Back to videos</Link>
+      </div>
+    );
+  }
+
+  if (videoState === 'not-found' || !video) {
     return (
       <div className="pt-error">
         <h2>Video not found</h2>
@@ -97,8 +135,8 @@ const WatchPage = ({ videos }: Props) => {
       <main className="pt-watch-main">
         <video
           className="pt-player"
-          src={`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.id)}.mp4`}
-          poster={`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.id)}.webp`}
+          src={`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.fileKey)}.mp4`}
+          poster={`${getEnv().MEDIA_BASE_URL}/${encodeURIComponent(video.fileKey)}.webp`}
           controls
           autoPlay
           playsInline
@@ -109,7 +147,7 @@ const WatchPage = ({ videos }: Props) => {
         </video>
 
         <h1 className="pt-watch-title">{video.title}</h1>
-        <p className="pt-watch-channel">{video.channel}</p>
+        <p className="pt-watch-channel">{video.author}</p>
 
         <section className="pt-comments" aria-labelledby="comments-heading">
           <h2 id="comments-heading">Comments</h2>
@@ -162,7 +200,7 @@ const WatchPage = ({ videos }: Props) => {
 
       <aside className="pt-watch-recommendations" aria-labelledby="recommendations-heading">
         <h2 id="recommendations-heading">Up next</h2>
-        <VideoGrid videos={videos.filter((item) => item.id !== video.id)} compact />
+        <VideoGrid videos={recommendations.filter((item) => item.id !== videoId)} compact />
       </aside>
     </div>
   );
