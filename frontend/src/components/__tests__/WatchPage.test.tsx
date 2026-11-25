@@ -4,25 +4,17 @@ import fetchMock from 'jest-fetch-mock';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
 import { AuthProvider } from '../../useAuth';
-import { mockApi, reply, videoDetail, videoPage, videoSummary } from '../../testUtils/mockApi';
+import { mockApi, reply, videoComment, videoDetail, videoPage, videoSummary } from '../../testUtils/mockApi';
 import WatchPage from '../WatchPage';
 
 const ana = { id: 1, email: 'ana@mail.com', username: 'ana' };
-const metadata = {
-  meta: {
-    comments: [
-      { author: 'first-viewer', text: 'A stored comment' },
-      { author: 'second-viewer', text: 'Another stored comment' },
-    ],
-  },
-};
 
 const api = (overrides: Record<string, unknown> = {}) =>
   mockApi({
     '/auth/me': ana,
     '/videos/1': videoDetail(1, 'Featured video'),
     '/videos?page=0&size=12': videoPage([videoSummary(1, 'Featured video'), videoSummary(2, 'Recommended video')]),
-    '/key-1.json': metadata,
+    '/videos/1/comments': [videoComment(1, 'A stored comment')],
     ...overrides,
   });
 
@@ -44,7 +36,7 @@ describe('WatchPage', () => {
     fetchMock.resetMocks();
   });
 
-  it('plays the video from the API, loads saved comments and shows recommendations', async () => {
+  it('plays the video from the API, loads its comments and shows recommendations', async () => {
     api();
     await renderWatchPage();
 
@@ -59,16 +51,16 @@ describe('WatchPage', () => {
     expect(screen.getByRole('link', { name: /Recommended video/ })).toHaveAttribute('href', '/watch/2');
   });
 
-  it('lets a signed-in user add a temporary comment', async () => {
-    api();
+  it('lets a signed-in user add a comment (US-09)', async () => {
+    api({ 'POST /videos/1/comments': reply(201, videoComment(2, 'My comment', 'ana')) });
     await renderWatchPage();
 
     fireEvent.change(await screen.findByRole('textbox', { name: 'Add a comment' }), {
-      target: { value: '  My temporary comment  ' },
+      target: { value: '  My comment  ' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Comment' }));
 
-    expect(await screen.findByText('My temporary comment')).toBeInTheDocument();
+    expect(await screen.findByText('My comment')).toBeInTheDocument();
     expect(screen.getByText('@ana')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Add a comment' })).toHaveValue('');
   });
@@ -81,11 +73,12 @@ describe('WatchPage', () => {
     expect(await screen.findByText('A stored comment')).toBeInTheDocument();
   });
 
-  it('shows an error when saved comments cannot be loaded', async () => {
-    api({ '/key-1.json': reply(503) });
+  it('still plays the video when the comments cannot be loaded', async () => {
+    api({ '/videos/1/comments': reply(503) });
     await renderWatchPage();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load comments (HTTP 503).');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load the comments (HTTP 503).');
+    expect(screen.getByLabelText('Featured video')).toBeInTheDocument();
   });
 
   it('shows the description, category and tags, and the edit link only to the owner (US-07)', async () => {
@@ -105,14 +98,6 @@ describe('WatchPage', () => {
     await renderWatchPage();
     expect(await screen.findByLabelText('Featured video')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Edit video' })).not.toBeInTheDocument();
-  });
-
-  it('treats a missing grabber .json as no comments (uploaded videos)', async () => {
-    api({ '/key-1.json': reply(404) });
-    await renderWatchPage();
-
-    expect(await screen.findByText('No comments yet.')).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('shows a not-found message for an unknown video', async () => {

@@ -1,5 +1,5 @@
 import fetchMock from 'jest-fetch-mock';
-import type { VideoDetailDto, VideoPageDto, VideoSummaryDto } from '../videosApi';
+import type { CommentDto, VideoDetailDto, VideoPageDto, VideoSummaryDto } from '../videosApi';
 
 interface Reply {
   readonly __reply: true;
@@ -12,10 +12,16 @@ export const reply = (status: number, body?: unknown): Reply => ({ __reply: true
 
 const isReply = (value: unknown): value is Reply => typeof value === 'object' && value !== null && '__reply' in value;
 
-/** Answers each fetch by the end of its URL, whatever the call order. Unknown URLs get a 404. */
+/**
+ * Answers each fetch by the end of its URL, whatever the call order. Unknown URLs get a 404.
+ * A key with a method ("POST /videos/1/comments") wins over the plain URL.
+ */
 export const mockApi = (routes: Record<string, unknown>) => {
   fetchMock.mockResponse(async (request) => {
-    const route = Object.keys(routes).find((key) => request.url.endsWith(key));
+    const keys = Object.keys(routes);
+    const route =
+      keys.find((key) => key.startsWith(`${request.method} `) && request.url.endsWith(key.split(' ')[1])) ??
+      keys.find((key) => request.url.endsWith(key));
     if (route === undefined) return { status: 404, body: '' };
     const value = routes[route];
     if (isReply(value)) {
@@ -44,6 +50,14 @@ export const videoDetail = (id: number, title: string): VideoDetailDto => ({
   ownerId: null,
   tags: [],
   category: null,
+});
+
+export const videoComment = (id: number, text: string, authorName = 'viewer'): CommentDto => ({
+  id,
+  authorId: null,
+  authorName,
+  text,
+  createdAt: '2026-01-01T00:00:00Z',
 });
 
 export const videoPage = (items: VideoSummaryDto[], hasNext = false, page = 0): VideoPageDto => ({

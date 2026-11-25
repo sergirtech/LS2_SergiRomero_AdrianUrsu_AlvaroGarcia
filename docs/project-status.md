@@ -1,6 +1,6 @@
 # Project status
 
-Update this file when a step is finished. Last update: 2026-11-17.
+Update this file when a step is finished. Last update: 2026-11-25.
 
 ## Epic 1 — Authentication (US-01, US-02) · merged to `main` (#2)
 
@@ -58,7 +58,6 @@ Prompt: [`prompts/04-video-catalog.md`](../prompts/04-video-catalog.md). Decisio
 
 Known limits, left for later stories:
 * Search filters only the pages already loaded (US-08 moves it to the backend).
-* Comments still come from each video's `.json` and the ones written in the UI are not saved (US-09).
 * `WatchPage` shows title and channel; description, category and tags arrived with US-06/07.
 * Profile lists use a fixed sample of 5 videos stored in `localStorage` (US-03).
 
@@ -85,15 +84,36 @@ Prompt: [`prompts/10-video-upload-management.md`](../prompts/10-video-upload-man
 Known limits:
 * Uploads have no thumbnail, duration or resolution (no ffmpeg in the backend yet).
 * A new upload appears at the end of the catalog, which is ordered by `id` (D21); to discuss with the team.
-* Deleting a video will also have to delete its comments and playlist entries when those branches are merged.
+* Deleting a video will also have to delete its playlist entries when that branch is merged (comments: done, D23).
 * After a login triggered by `/upload`, the user lands on `/`, not back on `/upload`.
+
+## Epic 6 — Comments (US-09) · branch `feature/video-comment` · in progress
+
+Prompt: [`prompts/11-video-comments.md`](../prompts/11-video-comments.md). Decision: D23 in
+[`decisions.md`](decisions.md). Idea taken from the `US_division` branch, adapted to the model of `main` (D21, D22).
+
+| Step | Task                                                                                     | Status |
+|------|------------------------------------------------------------------------------------------|--------|
+| B1   | Domain `Comment`, `InvalidCommentException`; ports `ListCommentsUseCase`, `AddCommentUseCase`, `ImportCommentsUseCase`, `CommentRepository`, `CommentSource`; `CommentService` | done |
+| B2   | `video_comment` table (deleted with its video), `JsonCommentSource`, import on startup after the videos | done |
+| B3   | `GET` (public) and `POST` (session) `/api/videos/{id}/comments`; 400/401/404             | done   |
+| B4   | Backend tests (160 tests, JaCoCo met)                                                    | done   |
+| F1   | `videosApi.ts`: `fetchComments`, `addComment`; `useComments`                             | done   |
+| F2   | `CommentsSection` in `WatchPage`: list, form, errors, sign-in prompt                     | done   |
+| F3   | Frontend tests (109 tests, coverage thresholds met)                                      | done   |
+| C1   | Check in the browser on `docker compose` (PostgreSQL): visitor prompt, comment after registering and after logging in, expired session, comments kept after a backend restart | done |
+| C2   | Prompt approved, PR reviewed, squash merge                                               | pending |
+
+Known limits:
+* Comments have no date in the UI and the list is not paginated.
+* After a login from the comment prompt, the user lands on `/`, not back on the video (same as `/upload`).
 
 ## Other epics
 
 Done on `main`: base profile page (#6, frontend only: profile data and lists live in `localStorage`, no profile API
 yet), PostgreSQL setup for `prod` (#5).
 
-Not started: profile API (US-03), search on the backend (US-08), comments persistence (US-09), replies and likes (US-10), analytics (US-11), E2E tests
+Not started: profile API (US-03), search on the backend (US-08), replies and likes (US-10), analytics (US-11), E2E tests
 (NFR-02), full `docker compose` delivery (NFR-03).
 
 ## Refactor — hexagonal architecture · merged to `main` (#4)

@@ -419,7 +419,7 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
 }
 
 .pt-comment-form img,
@@ -463,12 +463,6 @@ html[data-bs-theme='dark'] .pt-icon-btn:hover img {
 
 .pt-comment-signin a {
   color: var(--pt-text);
-}
-
-.pt-comment-note {
-  margin: 0 0 20px 48px;
-  color: var(--pt-muted);
-  font-size: 0.78rem;
 }
 
 .pt-comment-error {

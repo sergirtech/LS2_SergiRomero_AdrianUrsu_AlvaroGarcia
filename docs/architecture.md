@@ -14,7 +14,7 @@ Browser ──► React SPA (Vite dev server :5173, or bundled into the backend 
               └── /media/**  static files from the video store folder (pro_tube.store.dir = ENV_PROTUBE_STORE_DIR)
                                 ▲
             tooling/videoGrabber writes .mp4 / .webp / .json triples into the store folder
-            (on startup the backend imports each .json into the `video` table, D21)
+            (on startup the backend imports each .json into the `video` table, D21, and its comments, D23)
             uploads (US-06) are written there too, as upload-<uuid>.mp4 (D22)
 ```
 
@@ -31,14 +31,14 @@ Hexagonal architecture (ports and adapters), see `decisions.md` D20:
 
 | Hexagon part        | Package                        | Contents today                                                         |
 |---------------------|--------------------------------|------------------------------------------------------------------------|
-| Domain              | `domain/model`, `domain/exception` | `User` (plain Java, immutable, `normalizeEmail`), `Video` (record: owner, tags and category too; `isOwnedBy`, `withMetadata`), `VideoMetadata` (normalizes and validates what an owner can edit), `PageResult<T>`, `UserAlreadyExistsException`, `UserNotFoundException`, `VideoNotFoundException`, `InvalidVideoException`, `VideoAccessDeniedException`, `VideoStorageException` |
-| Input ports         | `application/port/in`          | `RegisterUserUseCase`, `FindUserUseCase`, `ListVideosUseCase`, `GetVideoUseCase`, `ImportVideosUseCase`, `UploadVideoUseCase`, `EditVideoUseCase`, `DeleteVideoUseCase`, `ListMyVideosUseCase` |
-| Output ports        | `application/port/out`         | `UserRepository`, `PasswordHasher`, `VideoRepository`, `VideoMetadataSource`, `VideoFileStore` |
-| Use cases           | `application/service`          | `AuthService` (register, `getByEmail`), `VideoService` (paginated list with clamped page/size, get by id, idempotent import from the store; upload with MP4 checks, owner-only edit and delete, the owner's videos) |
-| Web adapter         | `infrastructure/web`           | `AuthController` (`/api/auth/register`, `/login`, `/me`), `ApiExceptionHandler` (400/401/404/409 JSON), DTOs in `dto/`, `VideosController` (`GET /api/videos?page=&size=` → `VideoPageResponse`, `GET /api/videos/{id}` → `VideoDetailResponse` or 404, `GET /mine`, multipart `POST`, `PUT /{id}`, `DELETE /{id}`; 400/403/413/500 JSON from `ApiExceptionHandler`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
-| Persistence adapter | `infrastructure/persistence`   | `UserJpaEntity` → table `app_user` (`id`, unique `email`, unique `username`, `password_hash`), `UserJpaRepository` (Spring Data, package-private), `UserPersistenceAdapter`; `VideoJpaEntity` → table `video` (`id`, unique `file_key`, metadata), `VideoJpaRepository`, `VideoPersistenceAdapter` (catalog pages ordered by `id`, an owner's pages newest first); `owner_id`, `category` and the `video_tag` table |
+| Domain              | `domain/model`, `domain/exception` | `User` (plain Java, immutable, `normalizeEmail`), `Video` (record: owner, tags and category too; `isOwnedBy`, `withMetadata`), `VideoMetadata` (normalizes and validates what an owner can edit), `PageResult<T>`, `Comment` (trims and validates the text), `InvalidCommentException`, `UserAlreadyExistsException`, `UserNotFoundException`, `VideoNotFoundException`, `InvalidVideoException`, `VideoAccessDeniedException`, `VideoStorageException` |
+| Input ports         | `application/port/in`          | `RegisterUserUseCase`, `FindUserUseCase`, `ListVideosUseCase`, `GetVideoUseCase`, `ImportVideosUseCase`, `UploadVideoUseCase`, `EditVideoUseCase`, `DeleteVideoUseCase`, `ListMyVideosUseCase`, `ListCommentsUseCase`, `AddCommentUseCase`, `ImportCommentsUseCase` |
+| Output ports        | `application/port/out`         | `UserRepository`, `PasswordHasher`, `VideoRepository`, `VideoMetadataSource`, `VideoFileStore`, `CommentRepository`, `CommentSource` |
+| Use cases           | `application/service`          | `AuthService` (register, `getByEmail`), `VideoService` (paginated list with clamped page/size, get by id, idempotent import from the store; upload with MP4 checks, owner-only edit and delete, the owner's videos), `CommentService` (list, add, idempotent import of the store comments) |
+| Web adapter         | `infrastructure/web`           | `AuthController` (`/api/auth/register`, `/login`, `/me`), `ApiExceptionHandler` (400/401/404/409 JSON), DTOs in `dto/`, `VideosController` (`GET /api/videos?page=&size=` → `VideoPageResponse`, `GET /api/videos/{id}` → `VideoDetailResponse` or 404, `GET /mine`, multipart `POST`, `PUT /{id}`, `DELETE /{id}`; 400/403/413/500 JSON from `ApiExceptionHandler`), `CommentsController` (`GET` public and `POST` with session at `/api/videos/{id}/comments`), `TestController` (`/api/hello`), `IndexController` (Thymeleaf leftovers) |
+| Persistence adapter | `infrastructure/persistence`   | `UserJpaEntity` → table `app_user` (`id`, unique `email`, unique `username`, `password_hash`), `UserJpaRepository` (Spring Data, package-private), `UserPersistenceAdapter`; `VideoJpaEntity` → table `video` (`id`, unique `file_key`, metadata), `VideoJpaRepository`, `VideoPersistenceAdapter` (catalog pages ordered by `id`, an owner's pages newest first); `owner_id`, `category` and the `video_tag` table; `CommentJpaEntity` → table `video_comment` (deleted with its video by the database), `CommentJpaRepository`, `CommentPersistenceAdapter` |
 | Security adapters   | `infrastructure/security`      | `BCryptPasswordHasher`, `AppUserDetailsService` (Spring Security user loading via `FindUserUseCase`) |
-| Store adapter       | `infrastructure/store`         | `JsonVideoMetadataSource`: reads the videoGrabber `{fileKey}.json` files of `pro_tube.store.dir`, skips invalid ones and those without `.mp4`; `FileSystemVideoFileStore`: writes uploads as `{fileKey}.mp4` (temporary `.part` file renamed at the end) and deletes a video's files |
+| Store adapter       | `infrastructure/store`         | `JsonVideoMetadataSource`: reads the videoGrabber `{fileKey}.json` files of `pro_tube.store.dir`, skips invalid ones and those without `.mp4`; `FileSystemVideoFileStore`: writes uploads as `{fileKey}.mp4` (temporary `.part` file renamed at the end) and deletes a video's files; `JsonCommentSource`: reads the comments of the `{fileKey}.json` files |
 | Configuration       | `infrastructure/config`        | `MvcConfig` (`/media/**`, CORS), `SecurityConfig` (filter chain: public routes, 401, logout; BCrypt `PasswordEncoder`; `AuthenticationManager`) |
 
 Rules: dependencies only point inwards (`infrastructure` → `application` → `domain`); `domain` has no framework
@@ -49,7 +49,7 @@ Profiles: `dev` (default) uses in-memory H2 with `ddl-auto=update` and the conso
 (`jdbc:h2:mem:mydb`, user `sa`). `prod` points to PostgreSQL 16 (`compose.yaml`, service `db`) through `ENV_PROTUBE_DB_*`
 variables; the global `ddl-auto=update` creates/updates the schema there too (no migrations yet).
 
-Startup: `AppStartupRunner` calls `ImportVideosUseCase` when `pro_tube.load_initial_data=true` (both profiles). A video has a database `id` (used in `/watch/{id}` and the API) and a `fileKey` (its file names under `/media`).
+Startup: `AppStartupRunner` calls `ImportVideosUseCase` and then `ImportCommentsUseCase` when `pro_tube.load_initial_data=true` (both profiles). A video has a database `id` (used in `/watch/{id}` and the API) and a `fileKey` (its file names under `/media`).
 
 ## Frontend (`frontend/`)
 
@@ -58,7 +58,10 @@ Startup: `AppStartupRunner` calls `ImportVideosUseCase` when `pro_tube.load_init
   `/upload` `UploadPage`, `/my-videos` `MyVideosPage`.
 * Catalog (US-04): `videosApi.ts` (`fetchVideoPage`, `fetchVideo`, DTO types) and `useVideos` (pages of 12, `loadMore`,
   `retry`). The home shows a skeleton, then the grid and a "Load more" button; `WatchPage` loads `GET /api/videos/{id}`
-  and builds the `/media/{fileKey}.mp4|.webp|.json` URLs from the `fileKey`.
+  and builds the `/media/{fileKey}.mp4|.webp` URLs from the `fileKey`.
+* Comments (US-09): `CommentsSection`, inside `WatchPage`, lists them and has the form (or a link to `/login` for
+  visitors); `useComments` calls `fetchComments` / `addComment` of `videosApi.ts`. If saving fails, the error is shown
+  and the text is kept.
 * Upload and management (US-06, US-07): `videosApi.ts` also has `uploadVideo` (multipart), `updateVideo`, `deleteVideo`
   and `fetchMyVideoPage`, all with `credentials: 'include'`, throwing `VideoApiError` with the backend message.
   `UploadPage` and `MyVideosPage` send visitors to `/login`; both use `VideoMetadataFields` (title, description,

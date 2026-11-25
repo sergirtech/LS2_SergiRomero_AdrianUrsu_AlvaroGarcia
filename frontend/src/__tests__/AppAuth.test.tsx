@@ -6,7 +6,7 @@ import { MemoryRouter } from 'react-router';
 import App from '../App';
 import { AuthProvider } from '../useAuth';
 import { publishProfileStatsChange } from '../profileStats';
-import { mockApi, reply, videoDetail, videoPage, videoSummary } from '../testUtils/mockApi';
+import { mockApi, reply, videoComment, videoDetail, videoPage, videoSummary } from '../testUtils/mockApi';
 
 // Jest has no CSS transform (frontend/AGENTS.md), so App's stylesheet is replaced by an empty module.
 jest.mock('../App.css', () => ({}));
@@ -181,7 +181,7 @@ describe('App authentication', () => {
       '/auth/me': reply(401),
       '/videos?page=0&size=12': videoPage([videoSummary(1, 'Uptown Funk'), videoSummary(2, 'Shake It Off')]),
       '/videos/2': videoDetail(2, 'Shake It Off'),
-      '/key-2.json': { meta: { comments: [{ author: 'viewer', text: 'Stored comment' }] } },
+      '/videos/2/comments': [videoComment(1, 'Stored comment')],
     });
     await renderApp('/');
 

@@ -49,16 +49,22 @@ Hexagonal architecture (ports and adapters, `docs/decisions.md` D20). Dependenci
 * `infrastructure/` — adapters and Spring wiring.
   * `web/` — input adapter: `@RestController`s under `/api/...`, thin, depend on input ports;
     `ApiExceptionHandler`; request/response records in `web/dto/`. Never return domain objects or JPA entities.
-  * `persistence/` — output adapter: `UserJpaEntity` (table `app_user`, `user` is reserved), the package-private
-    Spring Data `UserJpaRepository`, and `UserPersistenceAdapter` implementing the `UserRepository` port and
-    mapping entity ↔ domain.
+  * `persistence/` — output adapters, one per repository port. For users: `UserJpaEntity` (table `app_user`,
+    `user` is reserved), the package-private Spring Data `UserJpaRepository`, and `UserPersistenceAdapter`
+    implementing the `UserRepository` port and mapping entity ↔ domain.
   * `security/` — `BCryptPasswordHasher` (implements `PasswordHasher`) and `AppUserDetailsService` (Spring Security
     loads users through `FindUserUseCase`).
+  * `store/` — output adapters over the video store folder: `JsonVideoMetadataSource`, `JsonCommentSource`,
+    `FileSystemVideoFileStore`.
   * `config/` — `MvcConfig` (`/media/**` and CORS with credentials for `/api/**` from `http://localhost:[*]`) and
     `SecurityConfig` (filter chain, `PasswordEncoder`, `AuthenticationManager`).
 
 Adding a feature: domain model/exception → port(s) → service → adapter(s). A new external dependency (DB, file
 store, mail…) gets an output port in `application/port/out/` and its implementation in `infrastructure/`.
+
+Comments (US-09): the rules are in the domain `Comment`; `video_comment` rows are deleted with their video by the
+database (`ON DELETE CASCADE`), so don't delete them by hand. `Instant` fields of response DTOs need
+`@JsonFormat(shape = STRING)`: `@EnableWebMvc` bypasses Boot's Jackson defaults.
 
 Auth-specific rules: passwords are only stored through the `PasswordHasher` port (BCrypt); emails are normalized
 with `User.normalizeEmail` (trim + lowercase) everywhere they are stored or looked up.

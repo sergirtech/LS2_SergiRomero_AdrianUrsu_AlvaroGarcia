@@ -1,5 +1,6 @@
 package com.tecnocampus.LS2.protube_back.infrastructure.web;
 
+import com.tecnocampus.LS2.protube_back.domain.exception.InvalidCommentException;
 import com.tecnocampus.LS2.protube_back.domain.exception.InvalidVideoException;
 import com.tecnocampus.LS2.protube_back.domain.exception.UserAlreadyExistsException;
 import com.tecnocampus.LS2.protube_back.domain.exception.UserNotFoundException;
@@ -41,6 +42,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(VideoNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleVideoNotFound(VideoNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidCommentException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidComment(InvalidCommentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
     }
 
     @ExceptionHandler(InvalidVideoException.class)

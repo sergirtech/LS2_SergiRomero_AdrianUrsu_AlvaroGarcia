@@ -30,6 +30,15 @@ export interface VideoPageDto {
   hasNext: boolean;
 }
 
+/** Comment on a video (US-09); authorId is null when it was imported from the videoGrabber. */
+export interface CommentDto {
+  id: number;
+  authorId: number | null;
+  authorName: string;
+  text: string;
+  createdAt: string;
+}
+
 /** What the owner can set on a video (US-06, US-07). */
 export interface VideoMetadataInput {
   title: string;
@@ -40,11 +49,12 @@ export interface VideoMetadataInput {
 
 export const PAGE_SIZE = 12;
 
-// Same limits as the backend (Video.java, UploadVideoUseCase): checked here only to answer faster.
+// Same limits as the backend (Video.java, Comment.java, UploadVideoUseCase): checked here only to answer faster.
 export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 export const MAX_TITLE_LENGTH = 150;
 export const MAX_DESCRIPTION_LENGTH = 10_000;
 export const MAX_TAGS = 10;
+export const MAX_COMMENT_LENGTH = 1000;
 export const VIDEO_CATEGORIES = ['Music', 'Gaming', 'Education', 'Entertainment', 'Sports', 'News', 'Other'];
 
 export class VideoNotFoundError extends Error {}
@@ -156,4 +166,24 @@ export async function deleteVideo(id: number): Promise<void> {
   if (!response.ok) {
     throw await failure(response, 'Could not delete the video');
   }
+}
+
+export async function fetchComments(videoId: number, signal?: AbortSignal): Promise<CommentDto[]> {
+  const response = await send(`${videosUrl()}/${videoId}/comments`, { signal });
+  if (!response.ok) {
+    throw await failure(response, 'Could not load the comments');
+  }
+  return (await response.json()) as CommentDto[];
+}
+
+export async function addComment(videoId: number, text: string): Promise<CommentDto> {
+  const response = await send(`${videosUrl()}/${videoId}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+  if (!response.ok) {
+    throw await failure(response, 'Could not add the comment');
+  }
+  return (await response.json()) as CommentDto;
 }

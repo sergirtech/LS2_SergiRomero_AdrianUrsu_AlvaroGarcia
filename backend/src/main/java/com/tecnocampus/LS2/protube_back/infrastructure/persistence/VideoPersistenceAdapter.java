@@ -45,6 +45,11 @@ public class VideoPersistenceAdapter implements VideoRepository {
     }
 
     @Override
+    public Optional<Video> findByFileKey(String fileKey) {
+        return jpaRepository.findByFileKey(fileKey).map(VideoJpaEntity::toDomain);
+    }
+
+    @Override
     public boolean existsByFileKey(String fileKey) {
         return jpaRepository.existsByFileKey(fileKey);
     }
