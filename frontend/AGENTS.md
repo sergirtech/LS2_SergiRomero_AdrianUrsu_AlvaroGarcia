@@ -27,6 +27,8 @@ React 19, TypeScript 5.9, Vite 7, Bootstrap 5, axios. Tests with Jest 30 + Testi
   * `LoginPage` / `RegisterPage` — auth forms; they call `useAuth` (`src/useAuth.tsx`).
   * `Sidebar` — navigation links; collapses to an icon rail.
   * `VideoGrid` / `VideoGridSkeleton` — responsive card grid and its loading placeholder.
+  * `CommentsSection` — comments of a video inside `WatchPage` (list, form, sign-in prompt); its data comes from the
+    `useComments` hook.
   * `VideoCard` — thumbnail from `${MEDIA_BASE_URL}/<name>.webp`, falling back to a gradient placeholder on error.
 * Tests in `src/components/__tests__/*.test.tsx`.
 * `src/utils/Env.ts` — the only place that reads `VITE_API_DOMAIN` / `VITE_MEDIA_DOMAIN`. In tests it is mocked
@@ -48,6 +50,8 @@ React 19, TypeScript 5.9, Vite 7, Bootstrap 5, axios. Tests with Jest 30 + Testi
 ## Rules
 
 * Build API and media URLs from `Env.ts`; never hardcode `localhost` URLs in components.
+* `mockApi` (`src/testUtils`) answers by the end of the URL; prefix a key with the method (`POST /videos/1/comments`)
+  when the same URL has several.
 * Mock HTTP in tests with `jest-fetch-mock` (`fetchMock.resetMocks()` in `beforeEach`); tests must not hit the network.
 * If a snapshot changes, check the diff is intended before updating it with `npx jest -u`.
 * Jest enforces ≥75% global coverage (branches, functions, lines, statements) over the tested files: every new

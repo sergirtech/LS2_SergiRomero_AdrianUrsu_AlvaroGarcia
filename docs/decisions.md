@@ -97,7 +97,7 @@ metadata edits (US-06/07) and analytics (US-11) can query it. On startup `AppSta
 Each video has two keys: the database `id` (URLs `/watch/{id}`, `/api/videos/{id}`) and the `fileKey` (file names in
 the store). Uploaded videos (US-06) will get their own `fileKey` without clashing with the grabber ids.
 `GET /api/videos?page=&size=` (default 12, max 48, ordered by `id`) clamps out-of-range values instead of answering
-400, so the list never errors. Tags, categories and comments of the JSON are not imported yet (US-07, US-09).
+400, so the list never errors. Tags and categories of the JSON are not imported; its comments are, since D23.
 ## D21 — Docker delivery: one `app` container + PostgreSQL, demo defaults in compose (Proposed, confirm with the team)
 NFR-03 asks for `docker compose up` on a clean machine with no manual steps. The root `Dockerfile` builds the jar
 with the Maven `prod` profile, which already builds the frontend and serves it from the jar (same origin: no CORS,
@@ -124,3 +124,20 @@ stored the bytes in the database instead; that does not scale to 100 MB files an
   upload appears at the end of the catalog (to discuss with the team: newest first would move it to the top).
 * Uploads have no thumbnail (`.webp`), duration or resolution: the card falls back to its placeholder. Generating
   them needs ffmpeg in the backend, left for later.
+
+## D23 — Comments in their own table, videoGrabber comments imported on startup (Proposed, US-09)
+Comments live in `video_comment` (`video_id`, `author_id`, `author_name`, `text`, `created_at`).
+`GET /api/videos/{id}/comments` is public and lists them newest first; `POST` needs a session (401 otherwise), so a
+visitor sees "Sign in to add a comment" instead of the form.
+* Rules live in the domain (`Comment`): trimmed, 1-1000 characters, 400 otherwise. The frontend repeats the limit
+  only to answer faster.
+* The comments of the videoGrabber `.json` files are imported after the videos, so all comments come from one API.
+  They have `author_id = null` because their authors are not ProTube users. A video that already has imported
+  comments is skipped, so restarts don't duplicate them, and each video's import is all or nothing. Texts over 1000
+  characters are cut without splitting an emoji.
+* The foreign key to `video` is `ON DELETE CASCADE`: deleting a video deletes its comments in the database, with no
+  change in `VideoService` and no possible orphans.
+* `author_name` is stored with the comment, like the author of a video (imported comments have no user to join). If
+  usernames become editable, old comments keep the old name.
+* The list is not paginated: the video with most comments has 14 today.
+* Replies and likes (US-10), and editing or deleting comments, are out of scope.

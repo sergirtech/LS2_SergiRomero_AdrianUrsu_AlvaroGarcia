@@ -1,5 +1,6 @@
 package com.tecnocampus.LS2.protube_back;
 
+import com.tecnocampus.LS2.protube_back.application.port.in.ImportCommentsUseCase;
 import com.tecnocampus.LS2.protube_back.application.port.in.ImportVideosUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,17 +9,19 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-/** On startup, imports into the catalog the store videos that are not in the database yet (idempotent). */
+/** On startup, imports into the catalog the store videos and comments not stored yet (idempotent). */
 @Component
 public class AppStartupRunner implements ApplicationRunner {
     private static final Logger LOG = LoggerFactory.getLogger(AppStartupRunner.class);
 
     private final ImportVideosUseCase importVideosUseCase;
+    private final ImportCommentsUseCase importCommentsUseCase;
     private final boolean loadInitialData;
 
-    public AppStartupRunner(ImportVideosUseCase importVideosUseCase,
+    public AppStartupRunner(ImportVideosUseCase importVideosUseCase, ImportCommentsUseCase importCommentsUseCase,
                             @Value("${pro_tube.load_initial_data:false}") boolean loadInitialData) {
         this.importVideosUseCase = importVideosUseCase;
+        this.importCommentsUseCase = importCommentsUseCase;
         this.loadInitialData = loadInitialData;
     }
 
@@ -29,5 +32,7 @@ public class AppStartupRunner implements ApplicationRunner {
             return;
         }
         LOG.info("Imported {} new videos from the store", importVideosUseCase.importFromStore());
+        // After the videos: a comment needs its video in the catalog.
+        LOG.info("Imported {} comments from the store", importCommentsUseCase.importCommentsFromStore());
     }
 }
